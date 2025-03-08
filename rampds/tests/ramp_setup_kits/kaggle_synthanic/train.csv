@@ -1,0 +1,101 @@
+PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
+36233,0,3,"Rodgers, Steven",male,26.0,0,0,24866,8.73,,S
+38502,0,3,"Manning, Thaddeus",male,52.0,0,1,45220,6.21,,S
+58624,1,1,"Armstrong, Bettye",female,56.0,0,0,333417,159.56,C9101,C
+62514,0,1,"Harper, Willis",male,56.0,1,0,40087,73.13,C7244,C
+97876,0,1,"Brooks, Mitchell",male,33.0,0,0,PC 11158,75.62,C14399,C
+7457,0,1,"Matta, Gerald",male,59.0,0,0,4291861,22.61,,S
+81325,0,3,"Jones, Donna",female,67.0,0,0,462654,8.17,,S
+48461,1,2,"Gwin, Lori",female,43.0,0,0,C 424097,30.57,,C
+83732,0,2,"Kreisher, James",male,4.0,0,0,41387,6.98,,S
+44312,0,3,"Pero, Bridget",female,12.0,0,2,SOTON/O.Q. 487070,63.73,E13635,C
+4249,1,3,"Ramos, Charles",male,30.0,0,2,A. 3893969,9.61,,S
+5156,1,1,"Elder, John",male,37.0,1,0,PC 481598,34.8,A9075,S
+82025,0,1,"Skinner, Erma",female,48.0,2,0,PC 432789,27.72,B9920,Q
+52242,1,2,"Wilford, Aurelia",female,55.0,1,2,12234,25.77,,S
+85663,0,2,"Tyska, Thomas",male,20.0,0,0,STON/O 11683,9.78,,S
+67643,0,3,"Avant, Kenyatta",female,0.17,0,0,440761,9.64,,S
+60844,0,3,"Hudnall, Travis",male,49.0,0,0,3691474,11.72,,S
+33430,0,3,"Rodriguez, Roland",male,30.0,0,0,457035,27.91,,S
+31007,0,2,"Seay, Eric",male,62.0,4,2,3973521,31.42,,S
+89968,1,3,"Kelley, Peggy",female,9.0,0,0,,25.99,,S
+13528,0,3,"Kaye, John",male,60.0,0,0,11668,9.71,,S
+23429,0,1,"Fellows, Eduardo",male,45.0,2,0,9547,22.21,,S
+99991,0,1,"Hogan, Todd",male,53.0,0,5,CA 48075,30.09,B19289,Q
+2352,0,2,"Allen, Bernard",male,55.0,0,0,3950204,12.39,C12879,S
+35012,1,1,"Wright, Jose",male,35.0,0,0,437753,59.61,B16996,C
+23694,0,2,"Treece, Clara",female,59.0,2,0,18795,8.75,,S
+18322,0,3,"Smith, Charles",male,59.0,1,0,440053,8.26,,S
+55526,1,3,"Kravitz, Patty",female,29.0,0,0,16822,14.02,,C
+28725,1,3,"Allen, Robert",male,21.0,0,0,10775,20.54,,S
+72193,0,2,"Javier, Andres",male,23.0,0,0,28022,28.88,,S
+91640,1,3,"Lake, Kelly",female,30.0,0,0,350565,13.37,,S
+50098,0,3,"Darling, Jeffrey",male,9.0,1,2,9978,10.96,B3202,S
+55399,0,3,"Hoyt, Charles",male,58.0,2,0,315911,58.11,,S
+8853,1,2,"Amundsen, Barbara",female,11.0,1,1,28318,42.57,,S
+87740,0,1,"Perie, Merle",male,31.0,0,0,4035215,178.27,C4389,S
+82359,0,1,"Weinstein, Daryl",male,57.5,1,0,22826,28.92,C14367,Q
+61053,0,1,"Gutierrez, Dawn",female,58.0,1,1,29381,71.73,A22122,S
+36690,0,3,"Starnes, Shane",male,,0,0,,6.22,,S
+32775,0,2,"Carter, Steven",male,29.0,4,0,28062,83.94,,C
+29911,1,1,"Anderson, Princess",female,,0,0,16900,75.75,D17620,C
+1471,0,3,"Joseph, Mark",male,53.0,0,0,W.E.P. 335410,6.51,,S
+94046,1,2,"Martin, Mary",female,70.0,1,0,9755,27.5,,S
+32970,1,1,"Chavez, Edward",male,27.0,1,0,10660,100.31,B16140,S
+11100,0,1,"Patterson, Newton",male,34.0,1,0,28256,74.68,A20059,S
+72863,1,1,"Raab, Michelle",female,53.0,1,0,25812,70.14,B5309,Q
+65884,0,3,"Morely, Juan",male,30.0,0,0,SC/AH 13036,9.0,,S
+75845,1,2,"Smith, Ada",female,59.0,0,0,344948,11.58,D9306,C
+61034,1,2,"Lopez, Rachael",female,64.0,0,0,442607,31.66,,S
+60382,0,3,"Nealy, Julio",male,61.0,0,0,435763,6.72,,S
+1116,1,3,"Flores, Cynthia",female,7.0,1,5,38128,72.18,,S
+36577,1,3,"Turner, Margery",female,50.0,0,0,,4.59,,S
+31307,0,2,"Bickel, Kenneth",male,22.0,0,0,350212,6.75,,S
+14128,0,3,"Collins, Richard",male,61.0,0,0,22491,7.77,,S
+76834,0,3,"Gragg, Thomas",male,20.0,0,0,17489,10.28,,S
+95347,1,1,"Centeno, Katherine",female,52.0,2,0,483435,60.37,C5822,C
+84712,0,3,"Williams, Juan",male,20.0,0,0,A. 447095,8.9,,S
+66638,1,3,"Benson, Pasty",female,20.0,0,0,C.A. ,26.25,,S
+39809,0,3,"Smith, Tiffany",female,26.0,0,0,20557,8.93,,S
+9574,0,1,"Peterson, Micheal",male,34.0,0,0,PC 29785,19.88,C6242,Q
+81484,0,2,"Snyder, Walter",male,36.0,0,0,3749785,29.65,,S
+52545,1,3,"Branch, Therese",female,65.0,0,2,PP 453811,30.78,,C
+76821,0,3,"Chaffin, Deborah",female,62.0,1,0,18651,107.06,,Q
+78787,0,1,"Calhoun, James",male,56.0,1,3,PC 28484,68.04,B20275,Q
+11012,1,2,"Love, Tracy",female,26.0,0,0,445549,7.11,,C
+90629,0,3,"Williams, George",male,31.0,0,0,STON/O 450759,9.72,,S
+23662,0,3,"Jefferies, Darrel",male,53.0,0,0,29056,23.36,,S
+28177,0,2,"Grant, Crystal",female,65.0,0,1,,28.25,,S
+75802,0,2,"Hildreth, Arthur",male,8.0,1,0,10715,23.44,,S
+2614,1,1,"Schreckengost, Barbara",female,41.0,1,0,317264,62.3,B4050,Q
+51115,0,3,"Bernard, Paul",male,63.0,0,0,19951,7.7,,S
+44656,0,3,"Luna, Benjamin",male,19.0,0,0,439075,6.31,,S
+28632,1,2,"Lentini, Mary",female,27.0,0,0,42643,15.08,,S
+15698,1,2,"Walley, Kathy",female,20.0,0,0,11947,9.04,,S
+48760,1,2,"Flanagan, Sylvia",female,47.0,0,0,11278,30.7,,S
+9622,0,1,"Annis, William",male,40.0,3,2,14511,65.09,A10853,S
+30628,0,1,"Stricker, Keith",male,36.0,0,0,31541,10.69,,S
+6611,1,2,"Burg, Franklin",male,26.0,0,1,21280,14.54,,S
+30461,0,3,"Knapp, Brandon",male,46.0,0,0,296755,9.38,,S
+16945,0,3,"Littleton, Ricardo",male,36.0,0,0,421207,8.46,,C
+6114,0,2,"Hamann, Lawrence",male,29.0,0,0,11372,19.19,,S
+59145,1,3,"Cobb, Rochelle",female,5.0,1,2,8714,28.38,,S
+71385,1,2,"Hardiman, Edward",male,30.0,2,1,SC 41793,490.28,A3715,S
+70492,1,2,"Hudson, Tina",female,17.0,0,0,414743,27.42,,S
+97747,0,3,"Lenis, William",male,21.0,0,0,A/5 ,6.44,,S
+30324,1,3,"Hogan, Kelli",female,43.0,1,0,22802,25.28,A4540,C
+42705,0,3,"Cross, Tom",male,39.0,0,0,4099944,333.98,,S
+3413,0,3,"Holden, Glenn",male,22.0,1,0,10997,12.63,,S
+19162,0,1,"Lloyd, Wayne",male,62.0,0,2,14211,30.59,C6914,C
+91725,1,3,"Wright, Amanda",female,55.0,0,0,374789,11.25,,S
+2084,0,3,"Prochaska, Gino",male,50.0,1,2,9826,53.95,B5696,S
+53926,0,3,"Juarez, Theresa",female,23.0,0,0,11916,11.74,,S
+88406,1,2,"Gonzalez, Kindra",female,8.0,0,0,25501,29.79,,C
+78049,1,3,"Wells, Keri",female,66.0,0,0,F.C.C. 437536,29.25,,C
+17853,0,2,"Wisniewski, Roy",male,25.0,0,0,A. 11791,10.32,,S
+3626,0,3,"Mccarty, Brett",male,31.0,0,0,23394,10.24,,S
+56582,1,2,"Eakes, Annie",female,59.0,0,0,11722,22.72,,S
+99346,1,1,"Reff, Barbara",female,64.0,0,0,PC 29106,28.32,B20188,Q
+64621,1,2,"Laughlin, Alta",female,50.0,1,1,4183898,28.18,,S
+64893,1,2,"Faughnan, Karen",female,50.0,0,0,35821,22.07,,C
+20277,0,1,"Olmstead, Charles",male,,0,0,28152,28.2,,S

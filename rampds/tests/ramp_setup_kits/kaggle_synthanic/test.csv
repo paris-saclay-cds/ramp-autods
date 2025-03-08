@@ -1,0 +1,101 @@
+PassengerId,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
+153101,1,"Thompson, Charles",male,20.0,1,2,25793,28.08,B11305,S
+162147,3,"Brown, Frank",male,38.0,1,0,3955285,13.84,,C
+102979,3,"Comstock, Derrick",male,5.0,1,1,A/5. 339855,7.07,,S
+146051,3,"Crosby, Ben",male,21.0,0,0,A. 12575,11.56,,S
+117182,1,"Williams, George",male,61.0,2,2,PC 38739,149.45,B10867,C
+148459,3,"Jess, James",male,41.0,0,0,328703,11.98,,S
+111096,1,"Conley, Alfredo",male,47.0,0,0,33887,81.26,C16364,C
+124926,3,"Fagerstrom, Margaret",female,43.0,1,2,8974,61.58,A4007,C
+186368,1,"Gibson, Mary",female,24.0,2,2,PC 9814,79.79,C13737,S
+120641,3,"Hansen, Steven",male,61.0,0,0,,12.11,,S
+186059,1,"Quinn, Jorge",male,35.0,0,0,310571,73.56,,Q
+120696,3,"Rivera, Jerry",male,31.0,1,0,44036,11.32,,S
+187988,3,"Yancey, Joseph",male,23.0,1,0,474259,12.28,,Q
+104372,3,"Hoge, Lawrence",male,22.0,1,0,A. 16154,7.52,,S
+178917,3,"Villasenor, Brent",male,33.0,0,0,9700,12.57,,C
+105914,3,"Cheney, Hector",male,23.0,1,1,A. 332903,8.64,,S
+145367,2,"Alexander, Neal",male,34.0,0,0,S.O.C. 5092,9.37,,S
+160028,3,"Valencia, Donald",male,24.0,0,0,13844,16.5,,S
+120600,3,"Fay, Alba",female,13.0,1,1,14088,29.86,,S
+103378,2,"Engel, Emmie",female,28.0,2,2,15434,23.65,F6505,C
+166259,3,"Sciancalepore, Jean",female,49.0,0,0,PC 14301,14.44,,C
+160152,3,"Butler, Virgil",male,21.0,0,0,424186,12.43,,Q
+120809,3,"Seifert, Gregory",male,23.0,0,0,,12.65,,S
+189434,1,"Reyes, Margaret",female,18.0,2,0,W.E.P. 399623,200.36,E13604,C
+165782,3,"Hao, Tracy",male,64.0,1,0,18402,84.66,,S
+108708,3,"Hoffman, Vincent",male,46.0,1,4,462116,64.46,,S
+119425,3,"Gutierrez, Antonio",male,20.0,0,0,12509,10.25,,S
+177272,2,"Duerr, William",male,18.0,0,0,428180,12.79,,S
+145369,3,"Stith, Robert",male,6.0,1,2,430308,50.05,,S
+114755,3,"Lamboy, Jessica",female,8.0,1,1,289127,11.45,,S
+172354,1,"Casares, Eleanor",female,19.0,0,0,453614,27.58,E20026,C
+155946,3,"Roberts, Kisha",female,21.0,0,0,14899,29.7,F15761,S
+105196,1,"Gibson, Concepcion",female,23.0,1,3,438396,79.66,C11719,Q
+189595,1,"Amador, Martha",female,27.0,0,1,PC 4291388,244.49,E13430,Q
+187227,1,"Michl, Alex",male,58.0,0,2,PC 27296,185.63,B20827,C
+105091,3,"Mcbride, Malcolm",male,45.0,0,0,29079,12.42,,S
+141755,3,"Solomon, Frank",male,,0,0,439047,11.91,,S
+150421,3,"Brown, Barbara",female,22.0,1,1,A. 475207,6.13,,S
+157424,3,"Aubry, Kurt",male,16.0,1,0,39920,8.98,,S
+116963,1,"Reeder, Ann",female,30.0,0,0,330282,12.04,,C
+105890,3,"West, Joseph",male,,0,0,10787,12.69,,Q
+129737,3,"Rice, Donald",male,22.0,0,0,13583,10.86,,S
+122924,3,"Peacock, Jewel",female,21.0,0,0,36601,10.94,,S
+105149,1,"Chynoweth, Willie",male,25.0,0,0,PC 451471,7.36,A11556,S
+111928,3,"Dale, Stuart",male,37.0,0,0,34854,10.23,,S
+150276,3,"Maffei, Adolfo",male,,0,0,430576,7.72,,S
+183966,3,"Jones, Tim",male,47.0,1,0,S.O.C. 436658,24.61,A18752,S
+179393,3,"Shumpert, Hal",male,23.0,1,0,484110,10.02,,Q
+138570,3,"Watts, Sharon",female,20.0,0,0,C.A. 223829,7.25,,Q
+126785,3,"Mcgurr, Vincent",male,62.0,0,0,,9.53,,S
+137152,3,"Mahon, Julio",male,30.0,0,0,,8.11,,S
+188742,1,"Wilmoth, Dustin",male,37.0,0,0,22123,20.95,A19983,S
+155995,1,"Seebach, Hazel",female,26.0,1,0,PC 29637,175.82,B12818,S
+140761,3,"Mccauley, Hilton",male,25.0,0,0,13213,8.49,,S
+171363,3,"Rosen, Matthew",male,24.0,0,0,484806,11.26,,Q
+121655,3,"Norwood, Peter",male,26.0,0,0,7861,25.64,,S
+133173,3,"Mercado, Dominic",male,27.0,0,0,443432,11.64,,S
+140523,2,"Immediato, Mary",female,17.0,0,0,10908,9.58,,S
+161694,1,"Pulliam, Rosa",female,27.0,0,2,PC 199570,179.77,C14084,C
+186336,3,"Swirsky, William",male,26.0,0,0,28798,9.56,,S
+137748,3,"Rodriguez, Edward",male,4.0,0,0,435672,30.01,E11266,C
+152621,3,"Fulbright, Dean",male,42.0,0,0,431721,7.31,,S
+107970,3,"Clapper, Robert",male,29.0,2,0,24048,31.19,,S
+148467,1,"Key, Sandra",female,47.0,2,2,218044,27.13,B17980,C
+123848,3,"Moore, Susan",female,27.0,0,0,462250,25.79,B10324,S
+124969,2,"Myer, Elvie",female,5.0,1,1,13026,41.2,,S
+115981,2,"Inabinet, Ricardo",male,41.0,0,0,349946,22.05,,S
+175335,3,"Christie, Dirk",male,,1,1,19322,35.41,,C
+138323,3,"Porter, Jason",male,38.0,0,0,7678,13.4,,S
+191434,3,"Vierra, Maggie",female,25.0,0,0,37965,4.49,,S
+186258,3,"Kmiotek, Karl",male,26.0,0,0,S.O./P.P. ,8.34,,S
+109037,1,"Walker, Kristine",female,50.0,1,1,25110,207.62,B20035,C
+136195,1,"Bullock, Aaron",male,41.0,2,0,12378,25.42,A9080,S
+179049,3,"Dunning, Robert",male,23.0,1,1,,13.55,,C
+133567,2,"Hartrick, Colby",male,21.0,0,0,A./5. 352568,12.81,D9874,C
+144865,3,"Butler, Terry",male,28.0,0,0,,7.33,,S
+155943,2,"Savage, Ruby",female,46.0,0,0,12615,11.53,,S
+167339,3,"Ford, Jody",male,,0,0,6531,10.81,,S
+126384,1,"Knesek, Thomas",male,54.0,0,0,29702,10.8,,C
+158395,3,"Morris, Jeremy",male,57.0,0,0,37119,9.43,,C
+159874,2,"Basil, Linda",female,58.0,0,0,25407,8.8,,S
+146996,3,"Riedl, Mark",male,20.0,0,0,384739,12.56,,C
+199931,3,"Garcia, Willie",male,26.0,0,0,,10.18,,S
+111839,3,"Franks, George",male,20.0,0,0,A. 289245,9.02,,S
+175639,3,"Sommers, Donald",male,20.0,1,0,22850,8.88,,S
+113935,3,"Oliver, James",male,69.0,1,0,43493,63.36,,Q
+193479,3,"Lunsford, Harold",male,23.0,0,0,40201,9.71,,Q
+107674,3,"Ibarra, Sam",male,37.0,0,0,,12.21,,S
+103300,3,"Siebenaler, Douglas",male,55.0,0,0,4158648,16.12,,Q
+153039,1,"Andrus, Robbie",female,25.0,0,0,3980126,10.28,,S
+110116,3,"Clifford, Charles",male,55.0,1,1,179606,23.42,,C
+183408,3,"Douthitt, William",male,,1,1,A. 21259,8.36,,C
+102401,3,"Rose, Lisa",female,0.08,0,0,452847,10.17,,Q
+132162,3,"Sanders, Jeffery",male,21.0,0,0,52676,7.99,,C
+161485,1,"Pace, Sara",female,26.0,1,1,PC 332788,203.31,C13775,Q
+170064,1,"Bathke, Christopher",male,17.0,1,2,PC 206632,191.13,C3212,C
+123284,1,"Litteral, Krystal",female,55.0,0,2,PC 28511,182.35,B14430,S
+104894,1,"Brown, Wayne",male,40.5,1,2,27254,180.61,C3912,C
+114131,3,"Blodgett, George",male,27.0,0,0,,12.02,,C
+149182,3,"Hearon, Anthony",male,15.0,0,0,10276,29.38,,S

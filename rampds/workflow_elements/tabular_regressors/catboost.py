@@ -44,7 +44,7 @@ class Regressor(BaseEstimator):
             self.objective = "RMSE"
         elif score_name in ["mae", "medae", "smape"]:
             self.objective = "MAE"
-        elif score_name == "mape":
+        elif score_name in ["mare", "mape"]:
             self.objective = "MAPE"
         else:
             raise ValueError(f"Unknown score_name {score_name}")

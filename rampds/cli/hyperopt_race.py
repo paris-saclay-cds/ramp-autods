@@ -70,13 +70,6 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     help="The index of the first fold of problem.get_cv.",
 )
 @click.option(
-    "--no-growing-folds",
-    is_flag=True,
-    default=True,
-    show_default=True,
-    help="Do not run the growing fold submission at the end.",
-)
-@click.option(
     "--base-predictors",
     multiple=True,
     default=["lgbm", "xgboost", "catboost"],
@@ -120,7 +113,6 @@ def main(
     n_folds_final_blend,
     first_fold_idx,
     patience,
-    no_growing_folds,
     base_predictors,
     data_preprocessors,
     preprocessors_to_hyperopt,
@@ -140,7 +132,6 @@ def main(
         n_folds_hyperopt=n_folds_hyperopt,
         n_folds_final_blend=n_folds_final_blend,
         first_fold_idx=first_fold_idx,
-        no_growing_folds=no_growing_folds,
         preprocessors_to_hyperopt=list(preprocessors_to_hyperopt),
         base_predictors=list(base_predictors),
         max_time=max_time,

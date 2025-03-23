@@ -55,8 +55,6 @@ def test_submission(ramp_kit):
         n_folds_hyperopt=3,
         n_folds_final_blend=7,
         base_predictors=["lgbm", "xgboost", "catboost"],
-        top_n_for_mean=2,
-        n_sigma=1.0,
     )
 
     rs.orchestration.hyperopt_race(
@@ -70,8 +68,6 @@ def test_submission(ramp_kit):
         n_folds_hyperopt=3,
         n_folds_final_blend=7,
         base_predictors=["lgbm", "xgboost", "catboost"],
-        top_n_for_mean=2,
-        n_sigma=1.0,
     )
 
     # cleaning up

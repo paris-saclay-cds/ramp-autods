@@ -280,60 +280,6 @@ def resume_race(
     return start_round, blended_submissions, action_stats, scores
 
 
-def final_blend_growing_folds(
-    base_predictors: list[str],
-    ramp_kit_dir: str,
-    kit_suffix: str,
-    n_folds_final_blend: int,
-    n_folds_hyperopt: int,
-    first_fold_idx: int,
-    top_n_for_mean: int,
-    n_sigma: float,
-):
-    """Select best of each base submission (hyperopt) within n sigma and blend.
-
-    We'll probably drop this since blend_and_bag and bag_and_blend work better,
-    but keep it for early versions to experiment.
-    """
-    for stop_fold_idx in range(first_fold_idx + n_folds_hyperopt + 1, first_fold_idx + n_folds_final_blend + 1):
-        selected_submissions = []
-        for submission in base_predictors:
-            rs.actions.select_top_hyperopt_and_train(
-                ramp_kit_dir=ramp_kit_dir,
-                submission=submission,
-                fold_idxs=range(first_fold_idx, stop_fold_idx),
-                trained_fold_idxs=range(first_fold_idx, stop_fold_idx - 1),
-                top_n=top_n_for_mean,
-                n_sigma=n_sigma,
-            )
-            top_hyperopt_dict = rs.actions.select_top_hyperopt(
-                ramp_kit_dir=ramp_kit_dir,
-                submission=submission,
-                fold_idxs=range(first_fold_idx, stop_fold_idx),
-                n_sigma=n_sigma,
-            )
-            if "selected_submissions" in top_hyperopt_dict:
-                selected_submissions += top_hyperopt_dict["selected_submissions"]
-        rs.actions.blend(
-            ramp_kit_dir=ramp_kit_dir,
-            submissions=selected_submissions,
-            fold_idxs=range(first_fold_idx, stop_fold_idx),
-        )
-        submission_source_f_name = (
-            Path(ramp_kit_dir) / "submissions" / "training_output" / "submission_combined_bagged_test.csv"
-        )
-        submission_target_f_name = (
-            Path(ramp_kit_dir)
-            / "final_test_predictions"
-            / f"auto_{kit_suffix}_growing_folds_{str(stop_fold_idx).zfill(3)}.csv"
-        )
-        submit_final_test_predictions(
-            submission_source_f_name=str(submission_source_f_name),
-            submission_target_f_name=str(submission_target_f_name),
-            ramp_kit_dir=ramp_kit_dir,
-        )
-
-
 def update_hyperopt_summary(
     base_predictors: list[str],
     ramp_kit_dir: str,
@@ -596,10 +542,7 @@ def hyperopt_race(
     ],
     preprocessors_to_hyperopt: Optional[list[str]] = None,
     max_time: float = 1000000,
-    top_n_for_mean: int = 10,
-    n_sigma: float = 1.0,
     contributivity_floor: int = 100,  # on 1000, added to contributivity to give a chance to every submission
-    no_growing_folds: bool = True,
     n_cpu_per_run: int = None,
 ):
     kit_suffix = f"v{version}_n{number}"
@@ -667,10 +610,7 @@ def hyperopt_race(
             base_predictors=base_predictors,
             data_preprocessors=data_preprocessors,
             preprocessors_to_hyperopt=dp_hyperopt_full_name,
-            top_n_for_mean=top_n_for_mean,
-            n_sigma=n_sigma,
             contributivity_floor=contributivity_floor,
-            no_growing_folds=no_growing_folds,
             save_path=ramp_kit_dir,
         )
 
@@ -697,22 +637,6 @@ def hyperopt_race(
         n_cpu_per_run=n_cpu_per_run,
     )
 
-    # Run the growing folds algorithm: select best of each base submission within
-    # n sigma and train on one more fold, then repeat. Then blend the best ones.
-    # Conservative blend (discard diverse but bad submissions), we'll probably drop
-    # this since blend_and_bag and bag_and_blend work better, but keep it for early
-    # versions to experiment.
-    if not no_growing_folds:
-        final_blend_growing_folds(
-            base_predictors=base_predictors,
-            ramp_kit_dir=str(ramp_kit_dir),
-            kit_suffix=kit_suffix,
-            n_folds_final_blend=n_folds_final_blend,
-            n_folds_hyperopt=n_folds_hyperopt,
-            first_fold_idx=first_fold_idx,
-            top_n_for_mean=top_n_for_mean,
-            n_sigma=n_sigma,
-        )
     # Train the final blend of the hyperopt race on all the folds
     train_on_all_folds(
         submissions=list(blended_submissions),

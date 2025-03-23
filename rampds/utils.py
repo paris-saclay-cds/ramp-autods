@@ -15,6 +15,8 @@ score_name_type_map = {
     # regression
     'rmse' : rw.score_types.RMSE,
     'mae' : rw.score_types.MAE,
+    'mape' : rw.score_types.MARE,
+    'mare' : rw.score_types.MARE,
     'r2' : rw.score_types.R2,
     'rmsle': rw.score_types.RMSLE,
     'medae': rw.score_types.MedAE,

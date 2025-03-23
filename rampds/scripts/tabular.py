@@ -70,6 +70,10 @@ def tabular_setup(
     target_cols = metadata["data_description"]["target_cols"]
     prediction_type = metadata["prediction_type"]
 
+    # kaggle_sticker bug
+    for col in target_cols:
+        train_data = train_data[~pd.isnull(train_data[col])]
+
     if "regression" in prediction_type:
         problem_code = rs.utils.load_template(package=rs, template_path="problems/tabular_regression_problem.py")
     elif "classification" in prediction_type:

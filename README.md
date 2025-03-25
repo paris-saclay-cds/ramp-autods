@@ -5,6 +5,21 @@ Automated Tabular Data Scientist based on the RAMP ecosystem.
 
 # Installation
 
+1. Create a fresh python environment
+```
+conda create -n auto_ds python=3.11
+```
+
+2. Install `ramp-workflow`
+```
+pip install git+https://github.com/paris-saclay-cds/ramp-workflow@autods
+```
+
+3. Install `ramp-hyperopt`
+```
+pip install git+https://rnd-gitlab-eu.huawei.com/Noahs-Ark/libraries/ramp-hyperopt
+```
+
 # Setup
 
 1. Clone a RAMP setup kit, for example, [`kaggle_abalone`](https://github.com/ramp-setup-kits/kaggle_abalone), place it in `./ramp-setup-kits` (by convention), and download the data from the kaggle site.

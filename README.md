@@ -10,14 +10,9 @@ Automated Tabular Data Scientist based on the RAMP ecosystem.
 conda create -n auto_ds python=3.11
 ```
 
-2. Install `ramp-workflow`
+2. In the root directory, run
 ```
-pip install git+https://github.com/paris-saclay-cds/ramp-workflow@autods
-```
-
-3. Install `ramp-hyperopt`
-```
-pip install git+https://rnd-gitlab-eu.huawei.com/Noahs-Ark/libraries/ramp-hyperopt
+pip install .
 ```
 
 # Setup

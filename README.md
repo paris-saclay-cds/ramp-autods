@@ -15,6 +15,8 @@ conda create -n auto_ds python=3.11
 pip install .
 ```
 
+3. (Optional) To interact with Kaggle you need to install `ramp-kaggle`.
+
 # Setup
 
 1. Clone a RAMP setup kit, for example, [`kaggle_abalone`](https://github.com/ramp-setup-kits/kaggle_abalone), place it in `./ramp-setup-kits` (by convention), and download the data from the kaggle site.

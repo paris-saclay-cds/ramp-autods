@@ -2,6 +2,11 @@ import numpy as np
 import rampds as rs
 import click
 import click_config_file
+import logging
+logger = logging.getLogger(__name__)
+
+if __name__ == '__main__':
+    main()
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
@@ -119,6 +124,12 @@ def main(
     max_time,
     n_cpu_per_run,
 ):
+    logging.basicConfig(
+        filename=f"{kit_root}/{ramp_kit}_v{version}_n{number}/autods.log",
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+#        datefmt="%Y-%m-%d %H:%M:%S"
+    )
     rs.orchestration.hyperopt_race(
         data_preprocessors=list(data_preprocessors),
         ramp_kit=ramp_kit,

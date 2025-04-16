@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 import rampds as rs
 import rampwf as rw
-
+import logging
+logger = logging.getLogger("orchestration")
 
 def last_action(
     ramp_kit_dir: str,
@@ -40,177 +41,183 @@ def submit_final_test_predictions(
     """
     shutil.copy(submission_source_f_name, submission_target_f_name)
 
+class Orchestrator():
+    def __init__(self, ramp_kit_dir, base_predictors, preprocessors_to_hyperopt, contributivity_floor, patience,
+                 is_lower_the_better, metadata, n_rounds, max_time, n_folds_hyperopt, n_folds_final_blend,
+                 n_trials_per_round, first_fold_idx, n_cpu_per_run):
+        self.ramp_kit_dir = ramp_kit_dir
+        self.base_predictors = base_predictors
+        self.preprocessors_to_hyperopt = preprocessors_to_hyperopt
+        self.contributivity_floor = contributivity_floor
+        self.patience = patience
+        self.is_lower_the_better = is_lower_the_better
+        self.metadata = metadata
+        self.n_rounds = n_rounds
+        self.max_time = max_time
+        self.n_folds_hyperopt = n_folds_hyperopt
+        self.n_folds_final_blend = n_folds_final_blend
+        self.n_trials_per_round = n_trials_per_round
+        self.first_fold_idx = first_fold_idx
+        self.n_cpu_per_run = n_cpu_per_run
+        
+        self.base_predictor_stats = {submission: [] for submission in self.base_predictors}
+        self.scores = []
+        self.blended_submissions = set()
+        self.round_idx = 0
+        self.elapsed_time = 0.0
+        self.estimated_final_blending_time = 0.0
+        self.final_round_datetime = None
+        self.fold_idxs = range(first_fold_idx, first_fold_idx + n_folds_hyperopt)
+        
+    def update_with_actions(self, hyperopt_action, blend_action):      
+        submission = hyperopt_action.kwargs["submission"]
+        base_predictor = submission
+        if "hyperopt" in submission:
+            base_predictor = submission[:-20]  # len(hyperopt_<hash_of_len_10>) = 19
 
-def run_race(
-    base_predictors: list[str],
-    action_stats: dict,
-    ramp_kit_dir: str,
-    kit_suffix: str,
-    metadata: dict,
-    n_rounds: int,
-    n_trials_per_round: int,
-    patience: int,
-    n_folds_hyperopt: int,
-    n_folds_final_blend: int,
-    first_fold_idx: int,
-    start_round: int,
-    scores: list[float],
-    is_lower_the_better: bool,
-    contributivity_floor: int,
-    blended_submissions: set[str],
-    max_time: float,
-    elapsed_time: float,  # in hours
-    preprocessors_to_hyper: Optional[list[str]] = None,
-    n_cpu_per_run: int = None,
-) -> set[str]:
-    # can be deleted, once the algorithm settles
-    improvement_speed_df = pd.DataFrame(columns=["round"] + base_predictors)
+        if hasattr(blend_action, "blended_score"):
+            blended_score = blend_action.blended_score
+            # Add up contributivites belonging to base predictors in the current blend
+            base_contributivities = {
+                s: self.contributivity_floor
+                + np.array([c for sh, c in blend_action.contributivities.items() if sh[: len(s)] == s]).sum()
+                for s in self.base_predictors
+            }
+        else:
+            print("something wrong: no blended score")
+            raise RuntimeError("something wrong: no blended score")
+        self.round_idx += 1
+        self.elapsed_time += hyperopt_action.runtime.total_seconds() / 3600
+        self.elapsed_time += blend_action.runtime.total_seconds() / 3600
+        self.scores.append(blend_action.blended_score)
+        self.base_predictor_stats[base_predictor].append(
+            {
+                "runtime": hyperopt_action.runtime,
+                "contributivities": base_contributivities,
+            }
+        )
+        self.blended_submissions = set([sh for sh, c in blend_action.contributivities.items() if c > 0])
+        print(f"Blended submissions: {self.blended_submissions}")
+        self.estimated_final_blending_time = 2 * blend_action.runtime.total_seconds() * self.n_folds_final_blend / self.n_folds_hyperopt / 3600
+        self.final_round_datetime = blend_action.start_time
 
-    if "regression" in metadata["prediction_type"]:
-        predictor_we_name = "regressor"
-    elif "classification" in metadata["prediction_type"]:
-        predictor_we_name = "classifier"
-
-    # NOTE if you want these now you can add them with the additional_preprocessors cli flag and
-    # then select for optim with the preprocessors_to_hyperopt
-    # base_we_names = [predictor_we_name, "data_preprocessor_1_drop_columns", "data_preprocessor_2_cat_target_encoding"]
-
-    # The WEs the orchestrator needs to choose from in every round
-    base_we_names = [predictor_we_name]
-    if preprocessors_to_hyper is not None:
-        base_we_names += preprocessors_to_hyper
-    round_datetime = None
-    for round_idx in range(start_round, n_rounds):
-        if patience >= 0 and len(scores) > patience:
-            if is_lower_the_better:
-                print(f"Best occured {len(scores) - scores.index(min(scores))} rounds ago.")
-                if min(scores[:-patience]) <= min(scores):
-                    break
+    def stop(self):
+        if self.round_idx >= self.n_rounds:
+            print(f"Stopping for reaching max rounds = {self.n_rounds}")
+            return True
+        if self.patience >= 0 and len(self.scores) > self.patience:
+            if self.is_lower_the_better:
+                print(f"Best occured {len(self.scores) - self.scores.index(min(self.scores))} rounds ago.")
+                if min(self.scores[:-self.patience]) <= min(self.scores):
+                    print(f"Stopping for reaching patience = {self.patience} at round {self.round_idx}")
+                    return True
             else:
-                print(f"Best occured {len(scores) - scores.index(max(scores))} rounds ago.")
-                if max(scores[:-patience]) >= max(scores):
-                    break
-        # We'll choose the submission that improves the results the fastest
+                print(f"Best occured {len(self.scores) - self.scores.index(max(sel.fscores))} rounds ago.")
+                if max(self.scores[:-self.patience]) >= max(self.scores):
+                    print(f"Stopping for reaching patience = {self.patience} at round {self.round_idx}")
+                    return True    
+        estimated_runtime_for_final_blend = 0
+        for submission in self.blended_submissions:
+            scores_df = pd.read_csv(f"{self.ramp_kit_dir}/submissions/{submission}/training_output/fold_{self.first_fold_idx}/scores.csv")
+            estimated_runtime_for_final_blend += scores_df["time"].sum()
+        estimated_runtime_for_final_blend *= (self.n_folds_final_blend - self.n_folds_hyperopt) / 3600
+        if self.elapsed_time + estimated_runtime_for_final_blend + self.estimated_final_blending_time > self.max_time:
+            print("Stopping for time limit:")
+            print(f"Elapsed time: {self.elapsed_time:.2f} hours")
+            print(f"\nEstimated runtime (train + valid + test) for final blend: {estimated_runtime_for_final_blend:.2f} hours")
+            print(f"\nEstimated final blending time: {self.estimated_final_blending_time:.2f} hours")
+            return True
+        return False
+
+    def choose_base_predictor(self):
+        # We'll choose the submission that improves the results the fastest        
         improvement_speeds = {}
-        for predictor in base_predictors:
-            ast = action_stats[predictor]
+        for base_predictor in self.base_predictors:
+            bpst = self.base_predictor_stats[base_predictor]
             # sum of contributivities, applying this action
-            if len(ast) >= 2:
-                last_ast = ast[-1]
-                total_time = np.array([a["runtime"].total_seconds() for a in ast]).sum()
-                contributivity = last_ast["contributivities"][predictor]
+            if len(bpst) >= 2:
+                last_bpst = bpst[-1]
+                total_time = np.array([a["runtime"].total_seconds() for a in bpst]).sum()
+                contributivity = last_bpst["contributivities"][base_predictor]
                 speed = contributivity / total_time
             else:
                 speed = np.finfo(float).max
-            improvement_speeds[predictor] = speed
+            improvement_speeds[base_predictor] = speed
         print(f"improvement_speeds:\n{improvement_speeds}")
-        row = pd.DataFrame(dict({"round_idx": round_idx}, **improvement_speeds), index=[round_idx])
-        improvement_speed_df = pd.concat([improvement_speed_df, row], ignore_index=True)
 
         max_speed = max(improvement_speeds.values())
-        best_predictors = [predictor for predictor, speed in improvement_speeds.items() if speed == max_speed]
-        predictor = random.choice(best_predictors)  # in case of tie (at zero typically), or eps greedy, random choice
-        print(f"best_predictors: {best_predictors}")
-        print(f"selected predictor : {predictor}")
+        best_base_predictors = [bp for bp, speed in improvement_speeds.items() if speed == max_speed]
+        base_predictor = random.choice(best_base_predictors)  # in case of tie (at zero typically), or eps greedy, random choice
+        print(f"best base predictors: {best_base_predictors}")
+        print(f"selected base predictor : {base_predictor}")
         #    input("Press Enter to continue...")
-        n_trials = n_trials_per_round * n_folds_hyperopt
-        wes_to_hyperopt = random.sample(base_we_names, 1)
-        print(f"Workflow elements to choose from: {base_we_names}")
+        return base_predictor
+
+    def choose_workflow_elements(self):
+        if "regression" in self.metadata["prediction_type"]:
+            we_names = ["regressor"]
+        elif "classification" in self.metadata["prediction_type"]:
+            we_names = ["classifier"]
+        if self.preprocessors_to_hyperopt is not None:
+            we_names += self.preprocessors_to_hyperopt
+        wes_to_hyperopt = random.sample(we_names, 1)
+        print(f"Workflow elements to choose from: {we_names}")
         print(f"Choosen workflow element: {wes_to_hyperopt[0]}")
-        submission_to_hyperopt = predictor  # default: hyperopt one of the base submissions
+        return wes_to_hyperopt
+
+    def choose_submission(self, base_predictor):
+        submission_to_hyperopt = base_predictor  # default: hyperopt one of the base submissions
         blended_submissions_of_predictor = [
-            submission for submission in blended_submissions if submission[:-20] == predictor
+            submission for submission in self.blended_submissions if submission[:-20] == base_predictor
         ]
         print(f"Submissions to choose from: {blended_submissions_of_predictor}")
         if len(blended_submissions_of_predictor) > 0:
             submission_to_hyperopt = random.choice(blended_submissions_of_predictor)
         print(f"Choosen submission: {submission_to_hyperopt}")
+        return submission_to_hyperopt
+
+def run_race(
+    orchestrator: Orchestrator,
+    ramp_kit_dir: str,
+) -> Orchestrator:
+    
+    logger.info(f"Race starting at round {orchestrator.round_idx}")
+    while not orchestrator.stop():
+        base_predictor = orchestrator.choose_base_predictor()
+        wes_to_hyperopt = orchestrator.choose_workflow_elements()
+        submission_to_hyperopt = orchestrator.choose_submission(base_predictor)  
         rs.actions.hyperopt(
             ramp_kit_dir=ramp_kit_dir,
             submission=submission_to_hyperopt,
             workflow_element_names=wes_to_hyperopt,
-            n_trials=n_trials,
-            fold_idxs=range(first_fold_idx, first_fold_idx + n_folds_hyperopt),
+            n_trials=orchestrator.n_trials_per_round * orchestrator.n_folds_hyperopt,
+            fold_idxs=orchestrator.fold_idxs,
             resume=True,
             subtract_existing=False,
-            n_cpu_per_run=n_cpu_per_run
+            n_cpu_per_run=orchestrator.n_cpu_per_run
         )
+        # we read the action from file because it also contains timing information
         hyperopt_action = last_action(ramp_kit_dir, "hyperopt")
-        elapsed_time += hyperopt_action.runtime.total_seconds() / 3600
-        if hyperopt_action is None:
-            continue
-        elif len(hyperopt_action.mean_scores) > 0:
-            # Add the best submission from this round of hyperopt to the set to be blended
+        if not hyperopt_action is None and len(hyperopt_action.mean_scores) > 0:
+            # Add all submissions from this round of hyperopt to the set to be blended
+            submissions_to_blend = orchestrator.blended_submissions.copy()
             for hyperopt_submission, mean_score in hyperopt_action.mean_scores.items():
-                # Add best
-                # if mean_score == hyperopt_action.mean_score:
-                blended_submissions.add(hyperopt_submission)
-
-            # The blended score improvement is wrt the previous blended score. If it doesn't exist
-            # (in the first iteration, or if no submission was blended for a reason) use the mean
-            # score.
-            previous_blend_action = last_action(ramp_kit_dir, "blend", fold_idxs=range(first_fold_idx, first_fold_idx + n_folds_hyperopt))
+                submissions_to_blend.add(hyperopt_submission)
             rs.actions.blend(
                 ramp_kit_dir=ramp_kit_dir,
-                submissions=list(blended_submissions),
-                fold_idxs=range(first_fold_idx, first_fold_idx + n_folds_hyperopt),
+                submissions=list(submissions_to_blend),
+                fold_idxs=orchestrator.fold_idxs,
             )
-            blend_action = last_action(ramp_kit_dir, "blend", fold_idxs=range(first_fold_idx, first_fold_idx + n_folds_hyperopt))
-            round_datetime = blend_action.start_time
-            elapsed_time += blend_action.runtime.total_seconds() / 3600
-            if hasattr(blend_action, "blended_score"):
-                blended_score = blend_action.blended_score
-                contributivities = {
-                    s: contributivity_floor
-                    + np.array([c for sh, c in blend_action.contributivities.items() if sh[: len(s)] == s]).sum()
-                    for s in base_predictors
-                }
-            else:
-                print("something wrong: no blended score")
-                raise RuntimeError("something wrong: no blended score")
-                blended_score = hyperopt_action.mean_score
-                contributivities = {s: 1000 / len(predictors) for s in base_predictors}
-            scores.append(blended_score)
-            action_stats[predictor].append(
-                {
-                    "runtime": hyperopt_action.runtime,
-                    "contributivities": contributivities,
-                }
-            )
-
-            # Delete submissions with zero contributivity from the submissions to be blended
-            contributivities_df = rs.actions.load_contributivities(ramp_kit_dir)
-            non_contributive_submissions = set(contributivities_df[contributivities_df["contributivity"] == 0].index)
-            print(f"blended submissions: {blended_submissions}")
-            print(f"non-contributive submissions: {non_contributive_submissions}")
-            blended_submissions = blended_submissions - non_contributive_submissions
-            print(f"new blended submissions: {blended_submissions}")
-            if max_time > 0:
-                estimated_runtime_for_final_blend = 0
-                for submission in blended_submissions:
-                    scores_df = pd.read_csv(f"{ramp_kit_dir}/submissions/{submission}/training_output/fold_{first_fold_idx}/scores.csv")
-                    estimated_runtime_for_final_blend += scores_df["time"].sum()
-                estimated_runtime_for_final_blend *= (n_folds_final_blend - n_folds_hyperopt) / 3600
-                estimated_final_blending_time = 2 * blend_action.runtime.total_seconds() * n_folds_final_blend / n_folds_hyperopt / 3600
-                with open(f"{ramp_kit_dir}/timing.txt", "w") as file:
-                    file.write(f"Elapsed time: {elapsed_time:.2f} hours")
-                    file.write(f"\nEstimated runtime (train + valid + test) for final blend: {estimated_runtime_for_final_blend:.2f} hours")
-                    file.write(f"\nEstimated final blending time: {estimated_final_blending_time:.2f} hours")
-                if elapsed_time + estimated_runtime_for_final_blend + estimated_final_blending_time > max_time:
-                    print("Stopping for time limit")
-                    break
+            blend_action = last_action(ramp_kit_dir, "blend", fold_idxs=orchestrator.fold_idxs)
+            orchestrator.update_with_actions(hyperopt_action, blend_action)
         #    input("Press Enter to continue...")
-    return blended_submissions, round_datetime
+    return orchestrator
 
 
 def resume_race(
-    action_stats: dict,
+    orchestrator: Orchestrator,
     ramp_kit_dir: str,
-    base_predictors: list[str],
-    contributivity_floor: int,
-    n_folds_hyperopt: int,
-    first_fold_idx: int,
-) -> tuple[int, set[str], dict, list[float]]:
+) -> Orchestrator:
     print("Loading actions...")
     action_f_names = glob.glob(f"{ramp_kit_dir}/actions/*")
     action_f_names.sort()
@@ -218,16 +225,12 @@ def resume_race(
     for action_f_name in action_f_names:
         f_name = Path(action_f_name).name
         ramp_program.append(rs.actions.load_ramp_action(Path(action_f_name)))
-    blend_actions = [
-        ra for ra in ramp_program if ra.name == "blend" and ra.kwargs["fold_idxs"] == range(first_fold_idx, first_fold_idx + n_folds_hyperopt)
-    ]
+    blend_actions = [ra for ra in ramp_program if ra.name == "blend" and ra.kwargs["fold_idxs"] == orchestrator.fold_idxs]
     
     if len(blend_actions) == 0:
         # Crash occured early, before the first round
         start_round = 0
-        blended_submissions = set()
-        scores = []
-        return start_round, blended_submissions, action_stats, scores
+        return start_round, orchestrator
 
     stop_time = blend_actions[-1].stop_time
     print(f"Last blending action at {stop_time}, deleting all actions after...")
@@ -242,17 +245,11 @@ def resume_race(
         f_name = Path(action_f_name).name
         ramp_program.append(rs.actions.load_ramp_action(Path(action_f_name)))
     # we only need race blend actions
-    blend_actions = [ra for ra in ramp_program if ra.name == "blend" and ra.kwargs["fold_idxs"] == range(first_fold_idx, first_fold_idx + n_folds_hyperopt)]
+    blend_actions = [ra for ra in ramp_program if ra.name == "blend" and ra.kwargs["fold_idxs"] == orchestrator.fold_idxs]
     hyperopt_actions = [ra for ra in ramp_program if ra.name == "hyperopt"]
-    start_round = len(hyperopt_actions)
-    scores = []
     print(f"Recovering {len(hyperopt_actions)} hyperopt and blend actions...")
     blend_action_idx = 0
     for hyperopt_action in hyperopt_actions:
-        submission = hyperopt_action.kwargs["submission"]
-        predictor = submission
-        if "hyperopt" in submission:
-            predictor = submission[:-20]
         if len(hyperopt_action.mean_scores) > 0:
             try:
                 blend_action = blend_actions[blend_action_idx]
@@ -261,23 +258,8 @@ def resume_race(
                 blend_action_idx += 1
                 continue
             blend_action_idx += 1  # if hyperopt did not return with any submissions, there was no blend
-            blended_score = blend_action.blended_score
-            scores.append(blended_score)
-            contributivities = {
-                s: contributivity_floor
-                + np.array([c for sh, c in blend_action.contributivities.items() if sh[: len(s)] == s]).sum()
-                for s in base_predictors
-            }
-            action_stats[predictor].append(
-                {
-                    "runtime": hyperopt_action.runtime,
-                    "contributivities": contributivities,
-                }
-            )
-    blend_action = blend_actions[-1]
-    blended_submissions = set([sh for sh, c in blend_action.contributivities.items() if c > 0])
-    print(f"Blended submissions: {blended_submissions}")
-    return start_round, blended_submissions, action_stats, scores
+            orchestrator.update_with_actions(hyperopt_action, blend_action)
+    return orchestrator
 
 
 def update_hyperopt_summary(
@@ -548,8 +530,6 @@ def hyperopt_race(
     kit_suffix = f"v{version}_n{number}"
     ramp_kit_dir = Path(kit_root) / f"{ramp_kit}_{kit_suffix}"
     problem = rw.utils.assert_read_problem(str(ramp_kit_dir))
-    score_names = [st.name for st in problem.score_types]
-    valid_score_name = f"valid_{score_names[0]}"
     is_lower_the_better = problem.score_types[0].is_lower_the_better
     with open(ramp_kit_dir / "data" / "metadata.json", "r") as f:
         metadata = json.load(f)
@@ -558,15 +538,27 @@ def hyperopt_race(
         n_cpu_per_run = int(n_cpu_per_run)
 
     # Dictionary of submissions: list of dictionary of run times and scores
-    action_stats = {submission: [] for submission in base_predictors}
+    orchestrator = Orchestrator(
+        ramp_kit_dir=ramp_kit_dir,
+        base_predictors=base_predictors,
+        preprocessors_to_hyperopt=preprocessors_to_hyperopt,
+        contributivity_floor=contributivity_floor,
+        patience=patience,
+        is_lower_the_better=is_lower_the_better,
+        metadata=metadata,
+        n_rounds=n_rounds,
+        max_time=max_time,
+        n_folds_hyperopt=n_folds_hyperopt, 
+        n_folds_final_blend=n_folds_final_blend,
+        n_trials_per_round=n_trials_per_round,
+        first_fold_idx=first_fold_idx,
+        n_cpu_per_run=n_cpu_per_run,
+    )
+
     if resume:
-        start_round, blended_submissions, action_stats, scores = resume_race(
-            action_stats=action_stats,
+        orchestrator = resume_race(
+            orchestrator=orchestrator,
             ramp_kit_dir=str(ramp_kit_dir),
-            base_predictors=base_predictors,
-            contributivity_floor=contributivity_floor,
-            n_folds_hyperopt=n_folds_hyperopt,
-            first_fold_idx=first_fold_idx,
         )
         try:
             config = rs.utils.load_config(load_path=ramp_kit_dir)
@@ -577,9 +569,6 @@ def hyperopt_race(
             print("Happens only on early versions that crashed without saving the config.")
             dp_hyperopt_full_name = preprocessors_to_hyperopt
     else:
-        start_round = 0
-        blended_submissions = set()
-        scores = []
         # submit base submissions
         submitted_elements = submit_base_submissions(
             ramp_kit_dir=ramp_kit_dir,
@@ -614,32 +603,14 @@ def hyperopt_race(
             save_path=ramp_kit_dir,
         )
 
-    blended_submissions, round_datetime = run_race(
-        base_predictors=base_predictors,
-        action_stats=action_stats,
+    orchestrator = run_race(
+        orchestrator=orchestrator,
         ramp_kit_dir=str(ramp_kit_dir),
-        kit_suffix=kit_suffix,
-        metadata=metadata,
-        n_rounds=n_rounds,
-        n_trials_per_round=n_trials_per_round,
-        patience=patience,
-        n_folds_hyperopt=n_folds_hyperopt,
-        n_folds_final_blend=n_folds_final_blend,
-        first_fold_idx=first_fold_idx,
-        start_round=start_round,
-        scores=scores,
-        is_lower_the_better=is_lower_the_better,
-        contributivity_floor=contributivity_floor,
-        blended_submissions=blended_submissions,
-        max_time=max_time,
-        elapsed_time=0.0,
-        preprocessors_to_hyper=dp_hyperopt_full_name,
-        n_cpu_per_run=n_cpu_per_run,
     )
 
     # Train the final blend of the hyperopt race on all the folds
     train_on_all_folds(
-        submissions=list(blended_submissions),
+        submissions=list(orchestrator.blended_submissions),
         ramp_kit_dir=str(ramp_kit_dir),
         n_folds_final_blend=n_folds_final_blend,
         first_fold_idx=first_fold_idx,
@@ -651,21 +622,21 @@ def hyperopt_race(
     )
     # Blend then bag the final blend of the hyperopt race on all the folds
     final_blend_then_bag(
-        submissions=list(blended_submissions),
+        submissions=list(orchestrator.blended_submissions),
         ramp_kit_dir=str(ramp_kit_dir),
         kit_suffix=kit_suffix,
         n_folds_final_blend=n_folds_final_blend,
         first_fold_idx=first_fold_idx,
-        round_datetime=round_datetime,
+        round_datetime=orchestrator.final_round_datetime,
     )
     # Bag then blend the final blend of the hyperopt race on all the folds
     final_bag_then_blend(
-        submissions=list(blended_submissions),
+        submissions=list(orchestrator.blended_submissions),
         ramp_kit_dir=str(ramp_kit_dir),
         kit_suffix=kit_suffix,
         n_folds_final_blend=n_folds_final_blend,
         first_fold_idx=first_fold_idx,
-        round_datetime=round_datetime,
+        round_datetime=orchestrator.final_round_datetime,
     )
     # Submit the best of each base submission (classical hyperopt)
     submit_best_submissions(

@@ -15,8 +15,11 @@ C = float(c)
 GAMMA = float(gamma)
 
 class Classifier(BaseEstimator):                                                                        
-    def __init__(self, dtypes_dict):                                                                    
-        pass                                                                                            
+    def __init__(self, metadata):                                                                    
+        self.metadata = metadata
+        target_cols = metadata["data_description"]["target_cols"]
+        if len(target_cols) > 1:
+            raise NotImplementedError("Multi-output classification is not yet supported.")            
                                                                                                         
     def fit(self, X, y):                                                                                
         self.clf = make_pipeline(                                                                       
@@ -26,7 +29,7 @@ class Classifier(BaseEstimator):
                 gamma=GAMMA,                                                                     
                 probability=True                                                                        
             ))                                                                                          
-        self.clf.fit(X, y)                                                                              
+        self.clf.fit(X, ravel(y))                                                                              
                                                                                                         
     def predict_proba(self, X):                                                                         
         return self.clf.predict_proba(X)                                                                

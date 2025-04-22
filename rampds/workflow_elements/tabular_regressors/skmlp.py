@@ -38,6 +38,8 @@ class Regressor(BaseEstimator):
             raise NotImplementedError("Multi-output regression is not yet supported.")            
 
     def fit(self, X, y):
+        if self.metadata["score_name"] == "rmsle":
+            y = np.log1p(y)
         X_new = X.copy()
         self.spline_transformers = {{}}
         for col in X_new.columns:
@@ -77,7 +79,10 @@ class Regressor(BaseEstimator):
                 X_new = X_new.drop(columns=[col])
         n_chunks = X_new.shape[0] * X_new.shape[1] / 10 ** 7
         n_rows = int(X_new.shape[0] / n_chunks)
-        return np.concatenate([
+        y_pred = np.concatenate([
             self.reg.predict(X_new[i * n_rows:(i + 1) * n_rows])
             for i in range(int(X_new.shape[0] / n_rows) + 1)
         ], axis=0)
+        if self.metadata["score_name"] == "rmsle":
+            y_pred = np.expm1(y_pred)
+        return y_pred

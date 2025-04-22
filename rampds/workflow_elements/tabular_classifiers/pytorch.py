@@ -8,25 +8,24 @@ from sklearn.preprocessing import StandardScaler
 from ramphy import Hyperparameter
 
 # RAMP START HYPERPARAMETERS
-hidden_size_1 = Hyperparameter(dtype='int', default=128, values=[32, 64, 128, 256, 512, 1024])
-hidden_size_2 = Hyperparameter(dtype='int', default=64, values=[16, 32, 64, 128, 256, 512])
+n_layers = Hyperparameter(dtype='int', default=1, values=[1, 2, 3, 4])
+hidden_size = Hyperparameter(dtype='int', default=128, values=[32, 64, 128, 256, 512, 1024])
 activation = Hyperparameter(dtype='str', default='relu', values=['relu', 'leaky_relu', 'elu', 'gelu', 'tanh'])
 dropout_rate = Hyperparameter(dtype='float', default=0.1, values=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
 batch_size = Hyperparameter(dtype='int', default=128, values=[128, 256, 512, 1024])
 learning_rate = Hyperparameter(dtype='float', default=0.001, values=[0.0001, 0.0003, 0.0005, 0.001, 0.003, 0.005, 0.01, 0.03, 0.05, 0.1])
 weight_decay = Hyperparameter(dtype='float', default=1e-5, values=[0.0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2])
-n_epochs = Hyperparameter(dtype='int', default=3, values=[3, 5, 10, 20, 30, 50])
 optimizer_name = Hyperparameter(dtype='str', default='adam', values=['adam', 'sgd', 'adamw', 'rmsprop'])
 scheduler_type = Hyperparameter(dtype='str', default='none', values=['none', 'step', 'cosine', 'plateau'])
 # RAMP END HYPERPARAMETERS
-HIDDEN_SIZE_1 = int(hidden_size_1)
-HIDDEN_SIZE_2 = int(hidden_size_2)
+N_LAYERS = int(n_layers)
+HIDDEN_SIZE = int(hidden_size)
 ACTIVATION = str(activation)
 DROPOUT_RATE = float(dropout_rate)
 BATCH_SIZE = int(batch_size)
 LEARNING_RATE = float(learning_rate)
 WEIGHT_DECAY = float(weight_decay)
-NUM_EPOCHS = int(n_epochs)
+NUM_EPOCHS = 500
 OPTIMIZER_NAME = str(optimizer_name)
 SCHEDULER_TYPE = str(scheduler_type)
 
@@ -52,7 +51,7 @@ class TabularDataset(Dataset):
 
 
 class PyTorchTabularModel(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_size_1, hidden_size_2, activation, dropout_rate):
+    def __init__(self, input_dim, output_dim, n_layers, hidden_size, activation, dropout_rate):
         super(PyTorchTabularModel, self).__init__()
         
         # Define activation function
@@ -68,27 +67,25 @@ class PyTorchTabularModel(nn.Module):
             self.activation = nn.Tanh()
         else:
             self.activation = nn.ReLU()  # Default
-        
-        # Define layers
-        self.layer1 = nn.Sequential(
-            nn.Linear(input_dim, hidden_size_1),
-            nn.BatchNorm1d(hidden_size_1),
-            self.activation,
-            nn.Dropout(dropout_rate)
-        )
-        
-        self.layer2 = nn.Sequential(
-            nn.Linear(hidden_size_1, hidden_size_2),
-            nn.BatchNorm1d(hidden_size_2),
-            self.activation,
-            nn.Dropout(dropout_rate)
-        )
-        
-        self.output_layer = nn.Linear(hidden_size_2, output_dim)
+            
+        self.n_layers = n_layers
+        self.hidden_size = hidden_size
+
+        self.layers = []
+        for i_layer in range(self.n_layers):
+            # Define layers
+            layer = nn.Sequential(
+                nn.Linear(input_dim, hidden_size),
+                nn.BatchNorm1d(hidden_size),
+                self.activation,
+                nn.Dropout(dropout_rate)
+            )
+            self.layers.append(layer)
+        self.output_layer = nn.Linear(hidden_size, output_dim)
     
     def forward(self, x):
-        x = self.layer1(x)
-        x = self.layer2(x)
+        for i_layer in range(self.n_layers):
+            x = self.layers[i_layer](x)
         x = self.output_layer(x)
         return x
 
@@ -119,7 +116,7 @@ class Classifier(BaseEstimator):
         
         # Create a validation set
         from sklearn.model_selection import train_test_split
-        X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+        X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.1, random_state=42)
         
         # Normalize input features
         X_train_scaled = self.scaler.fit_transform(X_train)
@@ -142,8 +139,8 @@ class Classifier(BaseEstimator):
         self.model = PyTorchTabularModel(
             input_dim=input_dim,
             output_dim=output_dim,
-            hidden_size_1=HIDDEN_SIZE_1,
-            hidden_size_2=HIDDEN_SIZE_2,
+            n_layers=N_LAYERS,
+            hidden_size=HIDDEN_SIZE,
             activation=ACTIVATION,
             dropout_rate=DROPOUT_RATE
         ).to(self.device)
@@ -180,13 +177,13 @@ class Classifier(BaseEstimator):
         elif SCHEDULER_TYPE == 'cosine':
             scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
         elif SCHEDULER_TYPE == 'plateau':
-            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10)
+            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3)
         else:
             scheduler = None
             
         # Early stopping variables
         best_val_loss = float('inf')
-        patience = 15
+        patience = 5
         patience_counter = 0
         best_model_state = None
 

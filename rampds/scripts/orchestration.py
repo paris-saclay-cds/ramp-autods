@@ -112,7 +112,7 @@ class Orchestrator():
                     print(f"Stopping for reaching patience = {self.patience} at round {self.round_idx}")
                     return True
             else:
-                print(f"Best occured {len(self.scores) - self.scores.index(max(sel.fscores))} rounds ago.")
+                print(f"Best occured {len(self.scores) - self.scores.index(max(self.scores))} rounds ago.")
                 if max(self.scores[:-self.patience]) >= max(self.scores):
                     print(f"Stopping for reaching patience = {self.patience} at round {self.round_idx}")
                     return True    

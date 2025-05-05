@@ -94,6 +94,11 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     help="A list of preprocessors to hyperopt. When multiple instances of a data_preprocessor are given through the data_preprocessors option, if you specify the full name, it will only hyperopt that one, otherwise it will hyperopt all the instances of the data_preprocessor.",
 )
 @click.option(
+    "--race-blend",
+    default="blend",
+    help="blend: first blend per fold, then bag the blends, bag_then_blend: first bag per folds, then blend the bags.",
+)
+@click.option(
     "--max-time",
     default=1000000.0,
     show_default=True,
@@ -121,6 +126,7 @@ def main(
     base_predictors,
     data_preprocessors,
     preprocessors_to_hyperopt,
+    race_blend,
     max_time,
     n_cpu_per_run,
 ):
@@ -145,6 +151,7 @@ def main(
         first_fold_idx=first_fold_idx,
         preprocessors_to_hyperopt=list(preprocessors_to_hyperopt),
         base_predictors=list(base_predictors),
+        race_blend=race_blend,
         max_time=max_time,
         n_cpu_per_run=n_cpu_per_run,
     )

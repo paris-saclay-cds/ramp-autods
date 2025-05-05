@@ -43,7 +43,7 @@ def submit_final_test_predictions(
 
 class Orchestrator():
     def __init__(self, ramp_kit_dir, base_predictors, preprocessors_to_hyperopt, contributivity_floor, patience,
-                 is_lower_the_better, metadata, n_rounds, max_time, n_folds_hyperopt, n_folds_final_blend,
+                 is_lower_the_better, metadata, n_rounds, max_time, race_blend, n_folds_hyperopt, n_folds_final_blend,
                  n_trials_per_round, first_fold_idx, n_cpu_per_run):
         self.ramp_kit_dir = ramp_kit_dir
         self.base_predictors = base_predictors
@@ -54,6 +54,7 @@ class Orchestrator():
         self.metadata = metadata
         self.n_rounds = n_rounds
         self.max_time = max_time
+        self.race_blend = race_blend
         self.n_folds_hyperopt = n_folds_hyperopt
         self.n_folds_final_blend = n_folds_final_blend
         self.n_trials_per_round = n_trials_per_round
@@ -153,14 +154,18 @@ class Orchestrator():
         #    input("Press Enter to continue...")
         return base_predictor
 
-    def choose_workflow_elements(self):
+    def choose_workflow_elements(self, base_predictor):
         if "regression" in self.metadata["prediction_type"]:
             we_names = ["regressor"]
         elif "classification" in self.metadata["prediction_type"]:
             we_names = ["classifier"]
         if self.preprocessors_to_hyperopt is not None:
             we_names += self.preprocessors_to_hyperopt
-        wes_to_hyperopt = random.sample(we_names, 1)
+        bpst = self.base_predictor_stats[base_predictor]
+        if len(bpst) >= 2:
+            wes_to_hyperopt = random.sample(we_names, 1)
+        else:
+            wes_to_hyperopt = [we_names[0]]
         print(f"Workflow elements to choose from: {we_names}")
         print(f"Choosen workflow element: {wes_to_hyperopt[0]}")
         return wes_to_hyperopt
@@ -180,11 +185,10 @@ def run_race(
     orchestrator: Orchestrator,
     ramp_kit_dir: str,
 ) -> Orchestrator:
-    
     logger.info(f"Race starting at round {orchestrator.round_idx}")
     while not orchestrator.stop():
         base_predictor = orchestrator.choose_base_predictor()
-        wes_to_hyperopt = orchestrator.choose_workflow_elements()
+        wes_to_hyperopt = orchestrator.choose_workflow_elements(base_predictor)
         submission_to_hyperopt = orchestrator.choose_submission(base_predictor)  
         rs.actions.hyperopt(
             ramp_kit_dir=ramp_kit_dir,
@@ -203,12 +207,21 @@ def run_race(
             submissions_to_blend = orchestrator.blended_submissions.copy()
             for hyperopt_submission, mean_score in hyperopt_action.mean_scores.items():
                 submissions_to_blend.add(hyperopt_submission)
-            rs.actions.blend(
-                ramp_kit_dir=ramp_kit_dir,
-                submissions=list(submissions_to_blend),
-                fold_idxs=orchestrator.fold_idxs,
-            )
-            blend_action = last_action(ramp_kit_dir, "blend", fold_idxs=orchestrator.fold_idxs)
+            if orchestrator.race_blend == "blend":
+                rs.actions.blend(
+                    ramp_kit_dir=ramp_kit_dir,
+                    submissions=list(submissions_to_blend),
+                    fold_idxs=orchestrator.fold_idxs,
+                )
+            elif orchestrator.race_blend == "bag_then_blend":
+                rs.actions.bag_then_blend(
+                    ramp_kit_dir=ramp_kit_dir,
+                    submissions=list(submissions_to_blend),
+                    fold_idxs=orchestrator.fold_idxs,
+                )
+            else:
+                raise ValueError(f"{orchestrator.race_blend}: unknown blending strategy")
+            blend_action = last_action(ramp_kit_dir, orchestrator.race_blend, fold_idxs=orchestrator.fold_idxs)
             orchestrator.update_with_actions(hyperopt_action, blend_action)
         #    input("Press Enter to continue...")
     return orchestrator
@@ -230,7 +243,7 @@ def resume_race(
     if len(blend_actions) == 0:
         # Crash occured early, before the first round
         start_round = 0
-        return start_round, orchestrator
+        return orchestrator
 
     stop_time = blend_actions[-1].stop_time
     print(f"Last blending action at {stop_time}, deleting all actions after...")
@@ -523,6 +536,7 @@ def hyperopt_race(
         "rm_constant_col",
     ],
     preprocessors_to_hyperopt: Optional[list[str]] = None,
+    race_blend: str = "blend",
     max_time: float = 1000000,
     contributivity_floor: int = 100,  # on 1000, added to contributivity to give a chance to every submission
     n_cpu_per_run: int = None,
@@ -548,13 +562,13 @@ def hyperopt_race(
         metadata=metadata,
         n_rounds=n_rounds,
         max_time=max_time,
+        race_blend=race_blend,
         n_folds_hyperopt=n_folds_hyperopt, 
         n_folds_final_blend=n_folds_final_blend,
         n_trials_per_round=n_trials_per_round,
         first_fold_idx=first_fold_idx,
         n_cpu_per_run=n_cpu_per_run,
     )
-
     if resume:
         orchestrator = resume_race(
             orchestrator=orchestrator,

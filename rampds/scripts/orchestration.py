@@ -162,7 +162,17 @@ class Orchestrator():
         if self.preprocessors_to_hyperopt is not None:
             we_names += self.preprocessors_to_hyperopt
         bpst = self.base_predictor_stats[base_predictor]
-        if len(bpst) >= 2:
+        blended_submissions_of_predictor = [
+            submission for submission in self.blended_submissions if submission[:-20] == base_predictor
+        ]
+        if len(bpst) >= 2 and len(blended_submissions_of_predictor) > 0:
+            # if we just start the race, or there is no base submission in the blend
+            # do not optimize the preprocessor, rather use the default
+            # this makes sure that eg we can control the default, eg which features
+            # are dropped.
+            # This has to be rethought, because if one predictor is already very good with a
+            # non-default preprocessor, others cannot enter the blend. We should hybridize
+            # base models and preprocessors.
             wes_to_hyperopt = random.sample(we_names, 1)
         else:
             wes_to_hyperopt = [we_names[0]]

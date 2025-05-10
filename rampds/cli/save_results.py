@@ -69,6 +69,11 @@ def get_validation_results(all_actions, first_fold_idx, n_folds_final_blend, ble
     show_default=True,
     help="The index of the first fold of problem.get_cv.",
 )
+@click.option(
+    "--race-blend",
+    default="blend",
+    help="blend: first blend per fold, then bag the blends, bag_then_blend: first bag per folds, then blend the bags.",
+)
 @click_config_file.configuration_option()
 def main(
     ramp_kit,
@@ -77,13 +82,14 @@ def main(
     n_folds_hyperopt,
     n_folds_final_blend,
     first_fold_idx,
+    race_blend,
 ):
     
     round_idxs = [20, 30, 50, 70, 100, 150, 200, 300, 500, 700, 1000, 1500, 2000, 3000, 5000, 7000, 10000]
 
     ramp_kit_dir = f"{ramp_kit}_v{version}_n{number}"    
     all_actions = rs.actions.get_all_actions(ramp_kit_dir)
-    blend_actions = [ra for ra in all_actions if ra.name == "blend" and
+    blend_actions = [ra for ra in all_actions if ra.name == race_blend and
                      ra.kwargs["fold_idxs"] == range(first_fold_idx, first_fold_idx + n_folds_hyperopt)]
     # adding possible final blend, not in the scheduled round_idx's
     if len(blend_actions) not in round_idxs:
@@ -114,10 +120,11 @@ def main(
     print(f"saved bagged_then_blended round idxs: {list(results_df['round_idx'])}")
 
     for ra in all_actions:
-        if ra.name == "blend":
-            if ra.kwargs["fold_idxs"] == range(0, 3):
+        if ra.name == race_blend:
+            if ra.kwargs["fold_idxs"] == range(first_fold_idx, n_folds_hyperopt):
                 ra.name = "blend_hyperopt"
-            else:
+        if ra.name == "blend":
+            if ra.kwargs["fold_idxs"] != range(first_fold_idx, n_folds_hyperopt):
                 ra.name = "blend_then_bag"
     all_actions_df = pd.DataFrame([{"name": ra.name, "runtime": ra.runtime} for ra in all_actions])
     runtimes = all_actions_df.groupby('name')['runtime'].sum()
@@ -128,4 +135,5 @@ def start():
 
 if __name__ == "__main__":
     start()
+
 

@@ -38,6 +38,11 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     help="The index of the first fold of problem.get_cv.",
 )
 @click.option(
+    "--race-blend",
+    default="blend",
+    help="blend: first blend per fold, then bag the blends, bag_then_blend: first bag per folds, then blend the bags.",
+)
+@click.option(
     "--round-idx",
     default=-1,
     show_default=True,
@@ -51,6 +56,7 @@ def main(
     n_folds_final_blend,
     n_folds_hyperopt,
     first_fold_idx,
+    race_blend_
     round_idx,
 ):
     rs.blend_at_round.blend_at_round(
@@ -60,6 +66,7 @@ def main(
         n_folds_final_blend,
         n_folds_hyperopt,
         first_fold_idx,
+        race_blend,
         round_idx,
     )
 

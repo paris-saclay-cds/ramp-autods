@@ -14,6 +14,7 @@ def blend_at_round(
     n_folds_final_blend,
     n_folds_hyperopt,
     first_fold_idx,
+    race_blend,
     round_idx,
 ):
     kit_suffix = f"v{version}_n{number}"
@@ -51,7 +52,7 @@ def blend_at_round(
         ramp_program.append(rs.actions.load_ramp_action(action_f_name))
     
     hyperopt_actions = [ra for ra in ramp_program if ra.name == "hyperopt"]
-    blend_actions = [ra for ra in ramp_program if ra.name == "blend"]
+    blend_actions = [ra for ra in ramp_program if ra.name == race_blend]
     train_actions = [ra for ra in ramp_program if ra.name == "train"]
 
     n_rounds = 0

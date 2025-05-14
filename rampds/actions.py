@@ -367,7 +367,7 @@ def train(
     """
     ramp_kit_dir, ramp_data_dir = convert_ramp_dirs(ramp_kit_dir, ramp_data_dir)
     problem = rw.utils.assert_read_problem(ramp_kit_dir)
-    fold_ixs = _make_fold_idxs(fold_idxs, ramp_kit_dir, ramp_data_dir)
+    fold_idxs = _make_fold_idxs(fold_idxs, ramp_kit_dir, ramp_data_dir)
     scores = dict()
     try:
         rw.utils.testing.assert_submission(

@@ -619,6 +619,7 @@ def hyperopt_race(
             n_folds_hyperopt=n_folds_hyperopt,
             n_folds_final_blend=n_folds_final_blend,
             first_fold_idx=first_fold_idx,
+            race_blend=race_blend,
             max_time=max_time,
             base_predictors=base_predictors,
             data_preprocessors=data_preprocessors,

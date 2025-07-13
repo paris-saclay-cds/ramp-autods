@@ -203,8 +203,9 @@ def run_race(
         rs.actions.hyperopt(
             ramp_kit_dir=ramp_kit_dir,
             submission=submission_to_hyperopt,
+            engine_name="hebo",
             workflow_element_names=wes_to_hyperopt,
-            n_trials=orchestrator.n_trials_per_round * orchestrator.n_folds_hyperopt,
+            n_trials=orchestrator.n_trials_per_round,
             fold_idxs=orchestrator.fold_idxs,
             resume=True,
             subtract_existing=False,
@@ -244,10 +245,7 @@ def resume_race(
     print("Loading actions...")
     action_f_names = glob.glob(f"{ramp_kit_dir}/actions/*")
     action_f_names.sort()
-    ramp_program = []
-    for action_f_name in action_f_names:
-        f_name = Path(action_f_name).name
-        ramp_program.append(rs.actions.load_ramp_action(Path(action_f_name)))
+    ramp_program = [rs.actions.load_ramp_action(Path(action_f_name)) for action_f_name in action_f_names]
     blend_actions = [ra for ra in ramp_program if ra.name == "blend" and ra.kwargs["fold_idxs"] == orchestrator.fold_idxs]
     
     if len(blend_actions) == 0:

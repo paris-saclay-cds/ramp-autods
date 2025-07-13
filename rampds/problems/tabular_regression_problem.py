@@ -26,7 +26,6 @@ workflow = rw.workflows.TabularRegressor()
 score_types = [
     rs.score_name_type_map[score_name](name=score_name, precision=4),
 ]
-#get_cv = rw.cvs.GrowingFolds().get_cv
 get_cv = rw.cvs.RTimesK().get_cv
 
 def _read_data(path, f_name, data_label, target_cols):

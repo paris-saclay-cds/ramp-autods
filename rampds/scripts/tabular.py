@@ -86,6 +86,7 @@ def tabular_setup(
     # Converting col names to a name that can become a python variable
     # and adding _<i> to col names to avoid clash
     new_feature_types = {}
+    feature_mapping = {}
     for col_i, (col, col_type) in enumerate(feature_types.items()):
         var_col = "_" + re.sub(r"[^a-zA-Z0-9_]", "_", col)
         new_col = f"{var_col}_{col_i}"
@@ -93,6 +94,7 @@ def tabular_setup(
             new_feature_types[col] = col_type
         else:
             new_feature_types[new_col] = col_type
+        feature_mapping[col] = new_col
     train_data = train_data.rename(columns=dict(zip(feature_types.keys(), new_feature_types.keys())))
     test_data = test_data.rename(columns=dict(zip(feature_types.keys(), new_feature_types.keys())))
 

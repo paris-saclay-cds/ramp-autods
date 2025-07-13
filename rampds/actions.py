@@ -168,6 +168,7 @@ def convert_ramp_dirs(
 def hyperopt(
     ramp_kit_dir: str,
     submission: str,
+    engine_name: str,
     n_trials: int,
     fold_idxs: Optional[Sequence[int]] = None,
     workflow_element_names: Optional[Sequence[str]] = None,
@@ -181,8 +182,7 @@ def hyperopt(
     Hyperopts submission using HEBO, creating
     <submission>_hyperopt_<hash> submissions, where hash hashes
     the list of hyperparameter values (even those that are not hyperopted,
-    not selected in workflow_element_names). The number of trials
-    n_trials is counted per fold, so should be a multiple of len(folds_idxs).
+    not selected in workflow_element_names). 
     Resume means we restart from existing models, fully trained on all folds.
     If subtract_existing is True, we subtract the number of hyperopted models
     times the number of folds from n_trials.
@@ -196,9 +196,10 @@ def hyperopt(
         The directory of the ramp-kit.
     submission : str
         The name of the submission to be hyperopted.
+    engine_name : str
+        The name of the hyperopt engine: ray_hebo, hebo, or random.
     n_trials : int
-        Number of hyperopt trials, counting per fold.
-        Should be a multiple of len(fold_idxs).
+        Number of hyperopt trials.
     fold_idxs : list of int, default=None
         Fold indices to hyperopt on.
         If None, we will train on all folds in problem.cv.
@@ -213,7 +214,7 @@ def hyperopt(
         If True, we resume from existing submissions hyperopted on
         all the folds in fold_idxs.
     subtract_existing : bool, default=False
-        If True, we discount len(fold_idxs) x len(hyperopted submssions)
+        If True, we discount len(hyperopted submssions)
         from n_trials.
     ramp_data_dir : str, default=None.
         Alternative ramp_kit_dir for using another data set. If None,
@@ -243,7 +244,7 @@ def hyperopt(
         existing_submissions = []
     previous_submissions = existing_submissions.copy()
     n_existing_submissions = len(existing_submissions)
-    n_existing_trials = n_existing_submissions * len(fold_idxs)
+    n_existing_trials = n_existing_submissions
     if subtract_existing:
         n_total_trials = n_trials
     else:
@@ -263,7 +264,7 @@ def hyperopt(
                 ramp_submission_dir=ramp_kit_dir / "submissions",
                 data_label=None,
                 submission=submission,
-                engine_name="ray_hebo",
+                engine_name=engine_name,
                 n_trials=n_trials_remaining,
                 workflow_element_names=workflow_element_names,
                 fold_idxs=fold_idxs,
@@ -305,8 +306,7 @@ def hyperopt(
                 n_exceptions += 1
         else:
             n_exceptions = 0
-        n_existing_submissions = len(existing_submissions)
-        n_existing_trials = n_existing_submissions * len(fold_idxs)
+        n_existing_trials = len(existing_submissions)
     r = dict()
     created_submissions = set(existing_submissions) - set(previous_submissions)
     r["created_submissions"] = list(created_submissions)
@@ -319,12 +319,6 @@ def hyperopt(
             r["mean_score"] = min(r["mean_scores"].values())
         else:
             r["mean_score"] = max(r["mean_scores"].values())
-#    ray_trash_folders = glob.glob("/tmp/ray/*")
-#    for folder in ray_trash_folders:
-#        shutil.rmtree(folder)
-#    ray_trash_folders = glob.glob(Path.home() / "ray_results")
-#    for folder in ray_trash_folders:
-#        shutil.rmtree(folder)
     return r
 
 @ramp_action

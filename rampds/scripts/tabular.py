@@ -108,7 +108,7 @@ def tabular_setup(
     else:
         metadata["data_description"]["feature_types_to_cast"] = None
 
-    feature_types = metadata["data_description"]["feature_types"] = new_feature_types
+    metadata["data_description"]["feature_types"] = new_feature_types
 
     problem_code = problem_code.format_map(metadata)
     with open(problem_f_name, "w") as f_out:
@@ -124,7 +124,7 @@ def tabular_setup(
     feature_values = {}
     missing_data_count = {}
     unique_value_count = {}
-    for col, col_type in feature_types.items():
+    for col, col_type in new_feature_types.items():
         # in some challenges some columns can be in the train and not in the test and
         # vice versa (see for instance https://www.kaggle.com/c/bike-sharing-demand)
         missing_data_count[col] = 0
@@ -176,6 +176,21 @@ def tabular_setup(
 
     #    metadata.save(ramp_data_dir)
     json.dump(metadata, open(ramp_data_dir / "data" / "metadata.json", "w"), indent=4)
+    try:
+#        feature_dropping_df = pd.read_csv(download_dir / "stats" / "feature_dropping.csv")
+#        feature_shuffling_df = pd.read_csv(download_dir / "stats" / "feature_shuffling.csv")
+#        feature_drop_proba_df = feature_shuffling_df
+#        feature_dropping_df = feature_dropping_df.drop(index=[0])
+#        feature_drop_proba_df = pd.concat([feature_dropping_df, feature_shuffling_df.drop(index=[0])], ignore_index=True)
+#        feature_drop_proba_df = feature_drop_proba_df.rename(columns=feature_mapping)
+#        feature_drop_proba_df.to_csv(ramp_data_dir / "data" / "feature_drop_proba.csv", index=False)
+        feature_shuffling_df = pd.read_csv(download_dir / "stats" / "feature_shuffling.csv")
+        feature_drop_proba_df = feature_shuffling_df.drop(index=[0])
+        feature_drop_proba_df = feature_drop_proba_df.rename(columns=feature_mapping)
+        feature_drop_proba_df.to_csv(ramp_data_dir / "data" / "feature_drop_proba.csv", index=False)
+    except Exception as e:
+        print(e)
+        pass
 
 
 @rs.actions.ramp_action
@@ -290,13 +305,28 @@ def tabular_data_preprocessor_submit(
         with open(submission_path / f"{wen}.py", "w") as f_out:
             f_out.write(dp_code)
         # Add a selection hyper per column
+        if data_preprocessor == "drop_columns":
+            try:
+                feature_drop_proba_df = pd.read_csv(ramp_data_dir / "data" / "feature_drop_proba.csv")
+            except FileNotFoundError as e:
+                print(e)
+                pass
         if hyper_type == "select_column":
             id_name = metadata["id_col"]
-            hs = [
-                rh.Hyperparameter(dtype="bool", default=False, values=[False, True], name=f"{col}_{hyper_suffix}")
-                for col in cols
-                if not col == id_name
-            ]
+            hs = []
+            for col in cols:
+                if not col == id_name:
+                    try:
+                        drop_proba = feature_drop_proba_df[col].iloc[0]
+                        drop_proba = max(0.2, drop_proba)
+                        priors = [1 - drop_proba, drop_proba]
+                    except:
+                        priors = [1, 1]
+                    h = rh.Hyperparameter(
+                        dtype="bool", default=False, values=[False, True],
+                        priors=priors, name=f"{col}_{hyper_suffix}"
+                    )
+                    hs.append(h)
             rh.write_hyperparameters_per_element(submission_path, submission_path, hs, wen)
     return wen
 

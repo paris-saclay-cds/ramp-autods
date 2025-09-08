@@ -320,7 +320,7 @@ def tabular_data_preprocessor_submit(
                 if not col == id_name:
                     try:
                         drop_proba = feature_drop_proba_df[col].iloc[0]
-                        drop_proba = max(0.2, drop_proba)
+                        #drop_proba = max(0.2, drop_proba)
                         priors = [1 - drop_proba, drop_proba]
                     except:
                         priors = [1, 1]

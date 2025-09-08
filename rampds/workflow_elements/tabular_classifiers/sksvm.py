@@ -29,7 +29,7 @@ class Classifier(BaseEstimator):
                 gamma=GAMMA,                                                                     
                 probability=True                                                                        
             ))                                                                                          
-        self.clf.fit(X, ravel(y))                                                                              
+        self.clf.fit(X, y.ravel())                                                                              
                                                                                                         
     def predict_proba(self, X):                                                                         
         return self.clf.predict_proba(X)                                                                

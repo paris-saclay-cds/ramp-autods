@@ -13,7 +13,7 @@ from sklearn.utils import check_random_state
 
 # RAMP START HYPERPARAMETERS
 nn_type = Hyperparameter(dtype='str', default='NN', values=['NN', 'MDN'])
-n_layers = Hyperparameter(dtype='int', default=3, values=[1, 2, 3])
+n_layers = Hyperparameter(dtype='int', default=4, values=[1, 2, 3, 4, 5, 6])
 layer_size = Hyperparameter(dtype='int', default=32, values=[32, 64, 128, 256, 512])
 drop_first = Hyperparameter(dtype='float', default=0.0, values=[0.0, 0.1, 0.2])
 drop_repeated = Hyperparameter(dtype='float', default=0.0, values=[0.0, 0.1, 0.2])
@@ -883,7 +883,8 @@ def train(
     numpy_rng = check_random_state(numpy_random_state)
 
     if optimizer is None:
-        optimizer = optim.Adam(model.parameters(), lr=1e-3)
+        optimizer = optim.AdamW(model.parameters(), lr=f12-3, betas=(0.9, 0.95), amsgrad=True)
+
     if val_loss_fn is None:
         val_loss_fn = loss_fn
 
@@ -1364,9 +1365,10 @@ class Regressor(BaseGenerativeRegressor):
         self.model = SimpleBinnedNoBounds(int(n_gaussians), X_in.shape[1])
 
         dataset = torch.utils.data.TensorDataset(torch.Tensor(X_in.to_numpy()), torch.Tensor(y_in))
-        optimizer = optim.Adam(
-            self.model.parameters(), lr=float(learning_rate), amsgrad=True
+        optimizer = optim.AdamW(
+            self.model.parameters(), lr=float(learning_rate), betas=(0.9, 0.95), amsgrad=True
         )
+
 
         # change patience
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
@@ -1382,11 +1384,11 @@ class Regressor(BaseGenerativeRegressor):
             optimizer,
             mode='min',
             factor=0.1,
-            patience=6,
+            patience=5,
             threshold=0.0,
             threshold_mode='abs',
-            cooldown=3,
-            min_lr=1e-8,
+            cooldown=0,
+            min_lr=1e-5,
             verbose=True,
         )
 
@@ -1407,7 +1409,7 @@ class Regressor(BaseGenerativeRegressor):
             optimizer=optimizer,
             #early_stopping=EarlyStopping(patience=10, cooldown=5, min_delta=0),
             scheduler=scheduler,
-            min_lr=1e-7, 
+            min_lr=1e-5, 
             return_best_model=True,
             disable_cuda=True,
             drop_last=True,

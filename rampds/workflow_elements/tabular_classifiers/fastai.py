@@ -8,11 +8,11 @@ from ramphy import Hyperparameter
 
 # RAMP START HYPERPARAMETERS
 bs = Hyperparameter(dtype='int', default=256, values=[128, 256, 512])
-n_epochs = Hyperparameter(dtype='int', default=3, values=[3, 5, 10, 20, 30, 50])
-learning_rate = Hyperparameter(dtype='float', default=1e-3, values=[3e-4, 1e-3, 3e-3, 1e-2, 3e-2])
+n_epochs = Hyperparameter(dtype='int', default=3, values=[3, 5, 10])#, 20, 30, 50])
+learning_rate = Hyperparameter(dtype='float', default=1e-3, values=[3e-4, 1e-3, 3e-3])#, 1e-2, 3e-2])
 wd = Hyperparameter(dtype='float', default=1e-2, values=[1e-4, 1e-3, 1e-2, 1e-1, 0.2, 0.3, 0.5])
 ps = Hyperparameter(dtype='float', default=0.3, values=[0.0, 0.1, 0.3, 0.5])
-layers = Hyperparameter(dtype='str', default='500-200', values=['200', '500', '1000', '200-100', '500-200', '1000-500', '200-100-50'])
+layers = Hyperparameter(dtype='str', default='500-200', values=['200', '500', '1000', '200-100', '500-200', '1000-500', '200-100-50', '1000-500-200'])
 use_bn = Hyperparameter(dtype='bool', default=True, values=[True, False])
 train_bn = Hyperparameter(dtype='bool', default=True, values=[True, False])
 moms = Hyperparameter(dtype='str', default='[0.95, 0.85, 0.95]', values=['[0.9, 0.9, 0.9]', '[0.95, 0.85, 0.95]', '[0.99, 0.9, 0.99]'])

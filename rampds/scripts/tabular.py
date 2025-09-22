@@ -10,6 +10,8 @@ from sklearn.preprocessing import LabelEncoder
 import ramphy as rh
 import rampds as rs
 
+from rampds.scripts.openfe import OpenFEFeatureEngineering
+
 def create_dummy_targets_and_encode_labels(
     train_data, test_data, target_cols, prediction_type):
     """Mock test labels if they do not exist and encode train and test labels.
@@ -49,6 +51,8 @@ def tabular_setup(
     download_dir: str | Path,
     ramp_kit_dir: str | Path = ".",
     ramp_data_dir: Optional[str | Path] = None,
+    openfe_feature_engineering: bool = True, # Set to true atm
+    
 ) -> None:
     """Sets up the kit from the metadata.json, train.csv and test.csv
 
@@ -66,6 +70,29 @@ def tabular_setup(
     test_data = pd.read_csv(download_dir / "test.csv")
 
     metadata = json.load(open(download_dir / "metadata.json"))
+    
+    # Add optional OpenFE feature engineering step
+    if openfe_feature_engineering:
+        print(f"DEBUG: Running OpenFE feature engineering step...")
+        # TODO: maybe change the API later to remove data_name (only need to create ramp kits names / save results)
+        data_name = "dummy"  
+        # initiate OpenFE experiment object
+        openfe_experiment = OpenFEFeatureEngineering(
+            train_data, 
+            test_data, 
+            metadata,
+            data_name=data_name,
+            n_cv_folds=3
+        )
+        
+        # TODO: see if we keep this experiment results or not
+        # run the experiment with rs.actions.ramp_action to save time and results
+        experiment_results = openfe_experiment.run_feature_engineering_and_selection()
+        # retrieve the best selected data with new engineered features 
+        train_data, test_data, metadata = openfe_experiment.load_best_updated_data()
+        print(f"DEBUG: OpenFE feature engineering step completed.")
+
+    # moved this to have relevant metadata 
     feature_types = metadata["data_description"]["feature_types"]
     target_cols = metadata["data_description"]["target_cols"]
     prediction_type = metadata["prediction_type"]

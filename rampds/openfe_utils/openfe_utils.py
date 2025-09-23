@@ -3,6 +3,8 @@ import re
 
 import matplotlib.pyplot as plt
 
+from rampds.openfe_utils.utils import FileUtils
+
 
 expe_meta_data_file = "experiment_metadata.json"
 scores_file = "scores.csv"
@@ -24,7 +26,7 @@ def score_is_better(score, comparison_score, objective_direction):
     else:
         return score > comparison_score
 
-# TODO: add results saving fns
+
 class OpenFEUtils:
     """
     Utility class for OpenFE related operations.
@@ -44,7 +46,8 @@ class OpenFEUtils:
         Returns:
             str: Formatted experiment type string.
         """
-        return f"{min_cand_feat//1000}k_min_cand_feat_{data_blocks}_data_blocks_feature_boost_{feature_boost}_{selection_method}"
+        return f"{min_cand_feat//1000}k_mcf_{data_blocks}_db_fb_{feature_boost}_{selection_method}"
+        # return f"{min_cand_feat//1000}k_min_cand_feat_{data_blocks}_data_blocks_feature_boost_{feature_boost}_{selection_method}"
     
     @staticmethod
     def plot_and_save_scores(n_feat, scores, original_score, score_name, data_name, objective_direction, results_dir):
@@ -76,7 +79,6 @@ class OpenFEUtils:
         plot_path = os.path.join(results_dir, scores_plot_file)
         plt.savefig(plot_path, dpi=300)
         print(f"OpenFE Plot saved to {plot_path}")
-
 
     @staticmethod
     def load_results(experiment_result_dir, data_name):
@@ -136,7 +138,6 @@ class OpenFEUtils:
         plt.grid(True, linestyle='--', alpha=0.7)
         plt.show()
 
-
     @staticmethod
     def get_best_n_selected_features(results_df, objective_direction, original_score, n_digits_round=5):
         """
@@ -170,7 +171,6 @@ class OpenFEUtils:
 
         return best_n_selected_features, best_score
     
-
     @staticmethod
     def parse_OpenFE_feature_name(name: str) -> str:
         """
@@ -215,7 +215,6 @@ class OpenFEUtils:
             
         # Fallback for any other pattern
         return re.sub(r'[^a-zA-Z0-9_]+', '_', name).strip('_')
-
 
     @staticmethod
     def rename_OpenFE_columns(columns: list[str]) -> list[str]:

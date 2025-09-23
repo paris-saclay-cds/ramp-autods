@@ -610,8 +610,6 @@ def cleanup_ramp_kit(ramp_kit_dir_local_actual, clean_ramp_kit):
         print(f"Deleted directory: {ramp_kit_dir_local_actual}")
 
 
-
-
 def get_objective_direction(score_name: str, print_value=False) -> str:
     """Determines the objective direction based on the score name.
 

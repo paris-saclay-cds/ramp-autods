@@ -16,7 +16,10 @@ def submit_foundation_submissions(
     ramp_kit_dir: str,
     base_predictors: list[str],
     workflow: rw.workflows.BaseWorkflow,
-    foundation_predictors_dir: str = "best_predictor_arms/hand_selection",
+    # TODO: replaced the hardcoded path below for testing purposes
+    # foundation_predictors_dir: str = "best_predictor_arms/hand_selection",
+    foundation_predictors_dir: str = ".",
+    deterministic_hash: Optional[bool] = False,
 ) -> list[str]:
     foundation_submissions = []
     for base_predictor in base_predictors:
@@ -38,27 +41,33 @@ def submit_foundation_submissions(
             predictor_hyperparameters = hypers_per_workflow_element[predictor_type]
                  
             for arm_i, arm in predictor_hypers_df.iterrows():
-                if not pd.isna(arm["contributivity"]):
-                    for h in predictor_hyperparameters:
-                        h.default_index = arm[f"{h.name}_i"]
-                    all_hyperparameters = []
-                    for wen in workflow.element_names:
-                        all_hyperparameters += hypers_per_workflow_element[wen]
-                    hyper_indices = [h.default_index for h in all_hyperparameters]
+                # removed the if condition below, as it lead to an error because no contributivities in my expe  
+                # if not pd.isna(arm["contributivity"]):
+                for h in predictor_hyperparameters:
+                    h.default_index = arm[f"{h.name}_i"]
+                all_hyperparameters = []
+                for wen in workflow.element_names:
+                    all_hyperparameters += hypers_per_workflow_element[wen]
+                hyper_indices = [h.default_index for h in all_hyperparameters]
+                # added a deterministic hash option for testing purposes, to see how to improve it
+                # TODO: at least store the deterministic hash somewhere it can be shared between files
+                if deterministic_hash:
+                    hyper_hash = "openfe"
+                else:
                     hyper_hash = hashlib.sha256(np.ascontiguousarray(hyper_indices)).hexdigest()[:10]
-                    foundation_submission_path = Path(f"{submission_path}_hyperopt_{hyper_hash}")
-                    foundation_submission = foundation_submission_path.name
-                    foundation_submissions.append(foundation_submission)
-                    try:
-                        rh.write_hyperparameters(
-                            submission_path,
-                            foundation_submission_path,
-                            hypers_per_workflow_element,
-                        )
-                    except IndexError as e:
-                        print(submission_path)
-                        print(arm)
-                        raise e
+                foundation_submission_path = Path(f"{submission_path}_hyperopt_{hyper_hash}")
+                foundation_submission = foundation_submission_path.name
+                foundation_submissions.append(foundation_submission)
+                try:
+                    rh.write_hyperparameters(
+                        submission_path,
+                        foundation_submission_path,
+                        hypers_per_workflow_element,
+                    )
+                except IndexError as e:
+                    print(submission_path)
+                    print(arm)
+                    raise e
     return foundation_submissions
 
 
@@ -78,7 +87,8 @@ def foundation_models(
         "base_columnwise",
         "rm_constant_col",
     ],
-):
+    deterministic_hash: Optional[bool] = False,
+):  
     kit_suffix = f"v{version}_n{number}"
     ramp_kit_dir = Path(kit_root) / f"{ramp_kit}_{kit_suffix}"
     problem = rw.utils.assert_read_problem(str(ramp_kit_dir))
@@ -94,6 +104,7 @@ def foundation_models(
         ramp_kit_dir=ramp_kit_dir,
         base_predictors=base_predictors,
         workflow=problem.workflow,
+        deterministic_hash=deterministic_hash
     )
     rs.orchestration.train_on_all_folds(
         submissions=foundation_submissions,

@@ -25,23 +25,27 @@ from openfe import OpenFE, tree_to_formula, transform
 class OpenFEFeatureEngineering:
     def __init__(
         self,
+        # data inputs
         train_df, 
         test_df,
         metadata,
         data_name,
-        n_cv_folds=30, 
+        # scoring inputs
+        n_cv_folds=30,
+        clean_ramp_kits=False,
+        # openfe parameters
         verbose=False, 
         max_new_feat_ratio=30, 
         n_jobs_gen=16, 
         min_cand_feat=10000, 
         n_data_blocks=2, 
-        feat_boost=False, 
-        use_fixed_hps=False, # TODO: see how to handle this in RAMP
+        feat_boost=False,
+        # feature selection 
         feat_selec_method="grid_search",
-        results_path="./",
-        # TODO: fix this later
-        ramp_setup_kit_path=None,
         n_feat_to_test=[1, 2, 5, 10, 15, 20, 30, 50, 100, 200],
+        # results storing
+        results_path="./",
+        ramp_dirs_path="./",
     ):  
         # data inputs
         self.train_df = train_df
@@ -51,6 +55,7 @@ class OpenFEFeatureEngineering:
         
         # scorer
         self.n_cv_folds = n_cv_folds
+        self.clean_ramp_kits = clean_ramp_kits
 
         # openfe parameters
         self.max_new_features_ratio = max_new_feat_ratio
@@ -64,13 +69,13 @@ class OpenFEFeatureEngineering:
         self.feature_selection_method = feat_selec_method
         self.n_feat_to_test = n_feat_to_test
 
-        # TODO comments
         self.exp_type = OpenFEUtils.get_experiment_type(
             min_cand_feat, n_data_blocks, feat_boost, feat_selec_method
         )
         self.exp_name = f"{self.data_name}_{self.exp_type}"
         # TODO: see how we handle the creation of setup kits for openfe experiments
         self.results_dir = os.path.join(results_path, "OpenFE", self.exp_type, self.data_name)
+        self.ramp_dirs_path = ramp_dirs_path # path where to create the ramp kits and setup kits
         self._setup_paths()
         self._created_dirs()
 
@@ -81,24 +86,17 @@ class OpenFEFeatureEngineering:
     # --- Public Methods ---
     # ==========================================================================
 
-    # TODO: API we want: updated_train, updated_test, updated_metadata = cls.generate_openfe_features(train_df, test_df, metadata, hps)
-    # TODO: add ramp action decorator
+    # TODO: add ramp action decorator here
     # @ramp_action
     def run_feature_engineering_and_selection(self):
         print("\nStarting OpenFE feature engineering experiment...")        
-
-        # loading and preprocessing data        
         self.start_time = time.time()
         self._print_experiment_setup()
-        # self.load_data()
 
-        # self.original_score_loaded = get_original_score(self.data_name)
         self.original_score = self.score_dataset(
             self.train_df, self.test_df, self.metadata, n_cv_folds=self.n_cv_folds, complete_setup_kit_name=f"{self.exp_name}_original"
         )
 
-        print(f"{self.original_score = }")
-        
         # preprocess for openfe
         self.preprocess_data()
 
@@ -118,7 +116,7 @@ class OpenFEFeatureEngineering:
             
         self._print_final_results()
 
-        #TODO: return a 
+        #TODO: see what we want to return here
         result_dict = {
             "best_n_selected_features": self.best_n_selec_feat,
             "best_score": self.best_score,
@@ -126,6 +124,8 @@ class OpenFEFeatureEngineering:
             "scores_df": self.scores_df,
             "total_time_seconds": time.time() - self.start_time
         }
+
+        # TODO: see if we also want to save these + automatic plots in the results dir
 
         # only return a dict without dfs and metadata cause needs to be pickled w ramp action
         return result_dict
@@ -175,6 +175,7 @@ class OpenFEFeatureEngineering:
         tmp_save_name = f'openfe_tmp_{self.exp_name}_xx.feather'
         tmp_save_path = os.path.join(self.tmp_path, tmp_save_name)
 
+        # generate new features with OpenFE
         ofe = OpenFE()
         features = ofe.fit(
             data=self.train_x_sanitized, 
@@ -188,10 +189,12 @@ class OpenFEFeatureEngineering:
             tmp_save_path=tmp_save_path 
         )
 
+        # save the generated features as a pickle file
         with open(self.new_features_saving_path, "wb") as f:
             pickle.dump(features, f)
+
+        # manually delete temporary file in case there was a crash
         if os.path.exists(tmp_save_path):
-            # safe_delete(tmp_save_path)
             os.remove(tmp_save_path)
 
         print(f"Generated {len(features)} new features.")
@@ -201,7 +204,6 @@ class OpenFEFeatureEngineering:
     def score_dataset(self, train_df, test_df, metadata, complete_setup_kit_name, n_cv_folds=30):
         updated_ramp_setup_kit_path = os.path.join(self.ramp_setup_kit_path, complete_setup_kit_name)
 
-        # TODO: remove mandatory additional infos
         save_ramp_setup_kit_data(
             train_df=train_df, 
             test_df=test_df, 
@@ -209,15 +211,15 @@ class OpenFEFeatureEngineering:
             ramp_setup_kit=updated_ramp_setup_kit_path
         )
 
-        # TODO: clean this w metadata
         mean_score_value, _ = run_ramp_experiment(
-            data_name_arg=self.data_name,
             complete_setup_kit_name=complete_setup_kit_name,
             n_cv_folds_arg=n_cv_folds,
             metadata=metadata,
             base_ramp_setup_kits_path=self.ramp_setup_kit_path,
             base_ramp_kits_path=self.ramp_kit_path,
+            clean_ramp_kit=self.clean_ramp_kits,
         )
+
         return mean_score_value
 
     def feature_selection_experiment(self):
@@ -290,8 +292,8 @@ class OpenFEFeatureEngineering:
         self.scores_saving_path = os.path.join(self.results_dir, "scores.csv")
         self.experiment_metadata_path = os.path.join(self.results_dir, "experiment_metadata.json")
         self.new_features_saving_path = os.path.join(self.results_dir, "openfe_features.pkl")
-        self.ramp_setup_kit_path = os.path.join(self.results_dir, 'ramp_setup_kits')
-        self.ramp_kit_path = os.path.join(self.results_dir, 'ramp_kits')
+        self.ramp_setup_kit_path = os.path.join(self.ramp_dirs_path, 'ramp_setup_kits')
+        self.ramp_kit_path = os.path.join(self.ramp_dirs_path, 'ramp_kits')
         self.tmp_path = os.path.join(self.results_dir, 'tmp')
 
     def _created_dirs(self):
@@ -461,7 +463,7 @@ class OpenFEFeatureEngineering:
         print(f"\nExperiment name: {self.exp_name}")
         print(f"Data name: {self.data_name}")
         print(f"Results directory: {self.results_dir}")
-        print(f"Original results saving path: {self.scores_saving_path}")
+        print(f"Scores results saving path: {self.scores_saving_path}")
         print(f"Number of CV folds: {self.n_cv_folds}")
         
         print(f"\nOpenFE hyperparameters:")

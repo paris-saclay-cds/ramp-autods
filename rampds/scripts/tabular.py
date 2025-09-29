@@ -11,6 +11,7 @@ import ramphy as rh
 import rampds as rs
 
 from rampds.scripts.openfe import OpenFEFeatureEngineering
+from rampds.openfe_utils.utils import DataFramePreprocessor
 
 def create_dummy_targets_and_encode_labels(
     train_data, test_data, target_cols, prediction_type):
@@ -75,8 +76,9 @@ def tabular_setup(
     if openfe_feature_engineering:
         print(f"DEBUG: Running OpenFE feature engineering step...")
         # TODO: maybe change the API later to remove data_name (only need to create ramp kits names / save results)
-        # TODO: absolutely change this hardcoded data_name
-        data_name = "abalone"  
+        # just used it to keep the same API as before
+        data_name = DataFramePreprocessor.sanitize_name(metadata["title"])
+
         # initiate OpenFE experiment object
         openfe_experiment = OpenFEFeatureEngineering(
             train_data, 

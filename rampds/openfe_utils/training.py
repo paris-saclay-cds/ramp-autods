@@ -3,6 +3,7 @@ import random
 
 import numpy as np
 
+import rampds
 import rampds as rs
 import rampwf as rw
 
@@ -65,7 +66,10 @@ def run_ramp_experiment(
         n_folds_hyperopt=n_cv_folds_arg,
         n_folds_final_blend=n_cv_folds_arg,
         base_predictors=["lgbm"],
-        deterministic_hash=True
+        deterministic_hash=True,
+        # TODO: fix this hardcoded path later: lgbm.csv in rampds/openfe_utils dir
+        # Use the __file__ attribute to get the directory as a string
+        foundation_predictors_dir=os.path.dirname(os.path.abspath(rampds.openfe_utils.__file__))
     )
 
     # use the deterministic openfe hash to find the submission

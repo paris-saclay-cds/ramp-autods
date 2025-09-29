@@ -16,9 +16,7 @@ def submit_foundation_submissions(
     ramp_kit_dir: str,
     base_predictors: list[str],
     workflow: rw.workflows.BaseWorkflow,
-    # TODO: replaced the hardcoded path below for testing purposes
-    # foundation_predictors_dir: str = "best_predictor_arms/hand_selection",
-    foundation_predictors_dir: str = ".",
+    foundation_predictors_dir: Optional[str] = "best_predictor_arms/hand_selection",
     deterministic_hash: Optional[bool] = False,
 ) -> list[str]:
     foundation_submissions = []
@@ -88,6 +86,7 @@ def foundation_models(
         "rm_constant_col",
     ],
     deterministic_hash: Optional[bool] = False,
+    foundation_predictors_dir: Optional[str] = "best_predictor_arms/hand_selection"
 ):  
     kit_suffix = f"v{version}_n{number}"
     ramp_kit_dir = Path(kit_root) / f"{ramp_kit}_{kit_suffix}"
@@ -104,7 +103,8 @@ def foundation_models(
         ramp_kit_dir=ramp_kit_dir,
         base_predictors=base_predictors,
         workflow=problem.workflow,
-        deterministic_hash=deterministic_hash
+        deterministic_hash=deterministic_hash,
+        foundation_predictors_dir=foundation_predictors_dir
     )
     rs.orchestration.train_on_all_folds(
         submissions=foundation_submissions,

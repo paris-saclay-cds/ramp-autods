@@ -87,7 +87,14 @@ class OpenFEFeatureEngineering:
     # --- Public Methods ---
     # ==========================================================================
 
-    @rs.actions.ramp_action
+    # TODO: fix the function result so I can use the decorator
+    # Current error: 
+    # File "/mnt/data/cleger/code/ramp-autods/rampds/actions.py", line 80, in ramp_decorator
+    # ramp_kit_dir = kwargs['ramp_kit_dir']
+    #                ~~~~~~^^^^^^^^^^^^^^^^
+    # KeyError: 'ramp_kit_dir'
+    
+    # @rs.actions.ramp_action
     def run_feature_engineering_and_selection(self):
         print("\nStarting OpenFE feature engineering experiment...")        
         self.start_time = time.time()

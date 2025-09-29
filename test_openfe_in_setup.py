@@ -3,7 +3,7 @@ from rampds.openfe_utils.utils import RAMP_SETUP_KITS_NAS_PATH, RAMP_KITS_NAS_PA
 
 ramp_kit = "kaggle_abalone"
 setup_root = RAMP_SETUP_KITS_NAS_PATH
-kit_root = "./"
+kit_root = "new_openfe_setup_kit/"
 version = "OpenFE_test"
 number = 0
 

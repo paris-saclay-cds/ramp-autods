@@ -83,11 +83,15 @@ def tabular_setup(
             test_data, 
             metadata,
             data_name=data_name,
-            # n_cv_folds=30
-            n_cv_folds=5
+            # add a small cv folds number for testing
+            n_cv_folds=5,
+            # don't delete the ramp setup / kits for testing
+            clean_ramp_kits=False,
+            # TODO: fix a directory for the openfe results (features + metadata + ramp kits & setup kits)
+            results_path="./"
         )
-        
-        # TODO: see if we keep this experiment results or not
+
+        # TODO: see if we keep these experiment results or not
         # run the experiment with rs.actions.ramp_action to save time and results
         experiment_results = openfe_experiment.run_feature_engineering_and_selection()
         # retrieve the best selected data with new engineered features 

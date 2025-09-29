@@ -3,23 +3,22 @@ import time
 import pickle
 
 from copy import deepcopy
-from dataclasses import dataclass, field
 
 import pandas as pd
 
+from openfe import OpenFE, tree_to_formula, transform
+
+import rampds as rs
+
+from rampds.openfe_utils.openfe_utils import OpenFEUtils
+from rampds.openfe_utils.training import run_ramp_experiment
 from rampds.openfe_utils.utils import (
-    FileUtils,
     DataFramePreprocessor,
     save_ramp_setup_kit_data,
     get_new_columns_name_dtype_and_check,
     generate_new_feature_types,
     extract_metadata_infos,
 )
-
-from rampds.openfe_utils.training import run_ramp_experiment
-from rampds.openfe_utils.openfe_utils import OpenFEUtils
-
-from openfe import OpenFE, tree_to_formula, transform
 
 
 class OpenFEFeatureEngineering:
@@ -45,7 +44,7 @@ class OpenFEFeatureEngineering:
         n_feat_to_test=[1, 2, 5, 10, 15, 20, 30, 50, 100, 200],
         # results storing
         results_path="./",
-        ramp_dirs_path="./",
+        ramp_dirs_path=None,
     ):  
         # data inputs
         self.train_df = train_df
@@ -74,8 +73,10 @@ class OpenFEFeatureEngineering:
         )
         self.exp_name = f"{self.data_name}_{self.exp_type}"
         # TODO: see how we handle the creation of setup kits for openfe experiments
-        self.results_dir = os.path.join(results_path, "OpenFE", self.exp_type, self.data_name)
-        self.ramp_dirs_path = ramp_dirs_path # path where to create the ramp kits and setup kits
+        # Where do we put them ? Do we automatically delete them ? etc.
+        self.results_dir = os.path.join(results_path, f"openfe_{self.exp_type}", self.data_name)
+        # TODO: clean this
+        self.ramp_dirs_path = ramp_dirs_path if ramp_dirs_path is not None else self.results_dir
         self._setup_paths()
         self._created_dirs()
 
@@ -86,8 +87,7 @@ class OpenFEFeatureEngineering:
     # --- Public Methods ---
     # ==========================================================================
 
-    # TODO: add ramp action decorator here
-    # @ramp_action
+    @rs.actions.ramp_action
     def run_feature_engineering_and_selection(self):
         print("\nStarting OpenFE feature engineering experiment...")        
         self.start_time = time.time()
@@ -126,6 +126,7 @@ class OpenFEFeatureEngineering:
         }
 
         # TODO: see if we also want to save these + automatic plots in the results dir
+        # see https://rnd-gitlab-eu.huawei.com/Noahs-Ark/research_projects/feature_selection_autods/-/blob/main/feature_selection/feature_engineering/openfe.py?ref_type=heads#L553
 
         # only return a dict without dfs and metadata cause needs to be pickled w ramp action
         return result_dict

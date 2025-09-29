@@ -1,2 +1,2 @@
 boosting_type,colsample_bynode,colsample_bytree,drop_rate,learning_rate,max_bin,max_depth,min_child_weight,min_data_in_leaf,min_split_gain,n_estimators,reg_alpha,reg_lambda,subsample,boosting_type_i,colsample_bynode_i,colsample_bytree_i,drop_rate_i,learning_rate_i,max_bin_i,max_depth_i,min_child_weight_i,min_data_in_leaf_i,min_split_gain_i,n_estimators_i,reg_alpha_i,reg_lambda_i,subsample_i
-goss,0.7,1.0,0.2,0.0005,256,1,2,700,0.1,400,3.0,4.0,1.0,8,2,5,1,0,0,0,1,8,1,11,8,5,5
+gbdt_0,0.7,1.0,0.6,0.2,1024,7,1,50,0.4,40,0.0,5.0,0.9,8,2,5,1,0,0,0,1,8,1,11,8,5,5

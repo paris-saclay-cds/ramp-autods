@@ -18,6 +18,7 @@ from rampds.openfe_utils.utils import (
     get_new_columns_name_dtype_and_check,
     generate_new_feature_types,
     extract_metadata_infos,
+    FileUtils
 )
 
 
@@ -74,7 +75,8 @@ class OpenFEFeatureEngineering:
         self.exp_name = f"{self.data_name}_{self.exp_type}"
         # TODO: see how we handle the creation of setup kits for openfe experiments
         # Where do we put them ? Do we automatically delete them ? etc.
-        self.results_dir = os.path.join(results_path, f"openfe_{self.exp_type}", self.data_name)
+        self.results_dir = os.path.join(results_path, f"{self.data_name}_openfe_{self.exp_type}", self.data_name)
+
         # TODO: clean this
         self.ramp_dirs_path = ramp_dirs_path if ramp_dirs_path is not None else self.results_dir
         self._setup_paths()
@@ -120,7 +122,7 @@ class OpenFEFeatureEngineering:
         self.updated_train_df, self.updated_test_df, self.updated_metadata = self._update_new_best_data(self.best_n_selec_feat)
 
         # save results and best setup kit if required # TODO: removed best setup kit
-            
+        self.save_results()
         self._print_final_results()
 
         #TODO: see what we want to return here
@@ -271,25 +273,36 @@ class OpenFEFeatureEngineering:
 
         return scores_df
     
-    # TODO: can use this to add in the 
-    # def save_results(self):
-    #     print("\nSaving results...")
-    #     self.experiment_metadata = {
-    #         "min_candidate_features": self.min_candidate_features,
-    #         "n_data_blocks": self.n_data_blocks,
-    #         "feature_boosting": self.feature_boosting,
-    #         "feature_selection_method": self.feature_selection_method,
-    #         "n_new_features": self.n_new_features,
-    #         "total_time_seconds": time.time() - self.start_time,
-    #         "score_name": self.score_name,
-    #         "objective_direction": self.objective_direction,
-    #         "data_name": self.data_name,
-    #         "n_feat_to_test": self.n_feat_to_test,
-    #         "original_score": self.original_score,
-    #     }
+    def save_results(self):
+        print("\nSaving results...")
+        self.experiment_metadata = {
+            "min_candidate_features": self.min_candidate_features,
+            "n_data_blocks": self.n_data_blocks,
+            "feature_boosting": self.feature_boosting,
+            "feature_selection_method": self.feature_selection_method,
+            "n_new_features": self.n_new_features,
+            "total_time_seconds": time.time() - self.start_time,
+            "score_name": self.score_name,
+            "objective_direction": self.objective_direction,
+            "data_name": self.data_name,
+            "n_feat_to_test": self.n_feat_to_test,
+            "original_score": self.original_score,
+        }
 
-    #     FileUtils.save_json(self.experiment_metadata, self.experiment_metadata_path)
-    #     FileUtils.save_csv(self.scores_df, self.scores_saving_path)
+        # save metadata and scores df as json and csv
+        FileUtils.save_json(self.experiment_metadata, self.experiment_metadata_path)
+        FileUtils.save_csv(self.scores_df, self.scores_saving_path)
+
+        # save results plot 
+        OpenFEUtils.plot_and_save_scores(
+            n_feat=self.scores_df["n_selected_features"].tolist(),
+            scores=self.scores_df["mean_score"].tolist(),
+            original_score=self.original_score,
+            data_name=self.data_name,
+            objective_direction=self.objective_direction,
+            score_name=self.score_name,
+            results_dir=self.results_dir,
+        )
 
     # ==========================================================================
     # --- Private Methods ---

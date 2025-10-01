@@ -6,9 +6,11 @@ import matplotlib.pyplot as plt
 from rampds.openfe_utils.utils import FileUtils
 
 
+# TODO: add these in a class / UPPERCASE if use them as constants
 expe_meta_data_file = "experiment_metadata.json"
 scores_file = "scores.csv"
-scores_plot_file = "openfe_scores_plot_improved.png"
+scores_plot_file = "openfe_scores_plot.png"
+
 
 def score_is_better(score, comparison_score, objective_direction):
     """ Check if the current score is better than the best score based on the objective direction.

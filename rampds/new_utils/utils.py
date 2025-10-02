@@ -9,6 +9,7 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 
+# TODO: absolutely change this later for open sourcing
 # NAS Disk
 NAS_ROOT_PATH = "/nas"
 RAMP_KITS_NAS_PATH = f"{NAS_ROOT_PATH}/ramp-kits"

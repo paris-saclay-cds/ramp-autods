@@ -52,8 +52,7 @@ def tabular_setup(
     download_dir: str | Path,
     ramp_kit_dir: str | Path = ".",
     ramp_data_dir: Optional[str | Path] = None,
-    openfe_feature_engineering: bool = False, # Set to true atm
-    
+    feature_engineering: str = None,
 ) -> None:
     """Sets up the kit from the metadata.json, train.csv and test.csv
 
@@ -61,6 +60,7 @@ def tabular_setup(
         download_dir (str | Path): Dir where metadata and the data are
         ramp_kit_dir (str | Path, optional): Dir where to put the kit. Defaults to ".".
         ramp_data_dir (Optional[str  |  Path], optional): Dir where the kit data will be stored. Defaults to None.
+        feature_engineering (str, optional): Feature engineering method to use. Defaults to None.
     """
 
     download_dir = Path(download_dir)
@@ -73,13 +73,12 @@ def tabular_setup(
     metadata = json.load(open(download_dir / "metadata.json"))
 
     # Add optional OpenFE feature engineering step
-    if openfe_feature_engineering:
-        print(f"DEBUG: Running OpenFE feature engineering step...")
-        # TODO: maybe change the API later to remove data_name (only need to create ramp kits names / save results)
-        # just used it to keep the same API as before
+    if feature_engineering == "openfe":
+        # maybe change the API later to remove data_name (only need it to create ramp kits names / save results)
         data_name = DataFramePreprocessor.sanitize_name(metadata["title"])
+        print(f"\nRunning OpenFE feature engineering on {data_name}...\n")
 
-        # initiate OpenFE experiment object
+        # create OpenFE experiment object
         openfe_experiment = OpenFEFeatureEngineering(
             train_data, 
             test_data, 
@@ -89,12 +88,12 @@ def tabular_setup(
             clean_ramp_kits=False,  # don't delete the ramp setup / kits for testing
         )
 
-        # TODO: see if we keep these experiment results or not
-        # run the experiment with rs.actions.ramp_action to save time and results
+        # run the experiment with rs.actions.ramp_action to save time and results (see if we need to keep the results)
         experiment_results = openfe_experiment.run_feature_engineering_and_selection()
+
         # retrieve the best selected data with new engineered features 
         train_data, test_data, metadata = openfe_experiment.load_best_updated_data()
-        print(f"DEBUG: OpenFE feature engineering step completed.")
+        print(f"\nOpenFE feature engineering step on {data_name} completed.\n")
 
     # moved this to have relevant metadata 
     feature_types = metadata["data_description"]["feature_types"]

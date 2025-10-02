@@ -34,12 +34,18 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     "--number",
     help="The program number (repeated within version)",
 )
+@click.option(
+    "--fe",
+    default=None,
+    help="Feature engineering method to use. Currently only 'openfe' is supported.",
+)
 def main(
     ramp_kit,
     setup_root,
     kit_root,
     version,
     number,
+    fe,
 ):
     rs.scripts.setup.setup(
         ramp_kit = ramp_kit,
@@ -47,6 +53,7 @@ def main(
         kit_root = kit_root,
         version = version,
         number = number,
+        feature_engineering = fe,
     )    
 
 def start():

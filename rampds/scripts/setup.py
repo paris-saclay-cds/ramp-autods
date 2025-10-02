@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import rampds as rs
+from typing import Optional
 
 def setup(
     ramp_kit: str,
@@ -8,7 +9,7 @@ def setup(
     kit_root: str,
     version: str,
     number: str | int,
-    openfe_feature_engineering: bool = False,
+    feature_engineering: Optional[str] = None,
 ):
     """Sets up a ramp kit from a ramp setup kit, and submits and trains starting kit.
 
@@ -31,6 +32,8 @@ def setup(
     number : str | int
         A suffix, typically a number, differentiating between different runs
         of the same kit.
+    feature_engineering : Optional[str]
+        Optional string for feature engineering method, or None.
     """
     kit_suffix = f"v{version}_n{number}"
     ramp_kit_dir = f"{kit_root}/{ramp_kit}_{kit_suffix}"
@@ -38,7 +41,7 @@ def setup(
     rs.scripts.tabular.tabular_setup(
         download_dir = f"{setup_root}/{ramp_kit}",
         ramp_kit_dir = ramp_kit_dir,
-        openfe_feature_engineering=openfe_feature_engineering
+        feature_engineering=feature_engineering
     )
 
     metadata = json.load(open(Path(ramp_kit_dir) / "data" / "metadata.json"))

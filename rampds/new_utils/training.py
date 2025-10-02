@@ -15,15 +15,12 @@ from rampds.actions import _mean_score
 def run_ramp_experiment(
     complete_setup_kit_name: str,
     n_cv_folds_arg: int,
-    metadata: dict,
     seed_arg: int = 42,
-    submission_arg: str = "starting_kit",
     version_arg: str = "eval",
     number_arg: int = 1,
     clean_ramp_kit: bool = True,
     base_ramp_setup_kits_path: str = ".",
     base_ramp_kits_path: str = ".",
-    use_fixed_hps: bool = False,
 ):
     """
     Runs a RAMP experiment for a given setup kit, updates hyperparameters,

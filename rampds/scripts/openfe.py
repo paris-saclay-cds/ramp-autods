@@ -1,5 +1,6 @@
 import os
 import time
+import shutil
 import pickle
 
 from copy import deepcopy
@@ -7,8 +8,6 @@ from copy import deepcopy
 import pandas as pd
 
 from openfe import OpenFE, tree_to_formula, transform
-
-import rampds as rs
 
 from rampds.new_utils.openfe_utils import OpenFEUtils
 from rampds.new_utils.training import run_ramp_experiment
@@ -46,6 +45,7 @@ class OpenFEFeatureEngineering:
         # results storing
         results_path="openfe_experiments/",
         ramp_dirs_path=None,
+        overwrite_results_dir=True, #default to True for experimenting and making testing easier
     ):  
         # data inputs
         self.train_df = train_df
@@ -79,8 +79,9 @@ class OpenFEFeatureEngineering:
 
         # TODO: clean this
         self.ramp_dirs_path = ramp_dirs_path if ramp_dirs_path is not None else self.results_dir
+        self.overwrite_results_dir = overwrite_results_dir
         self._setup_paths()
-        self._created_dirs()
+        self._create_dirs()
 
         self.load_data()
         self.df_preprocessor = DataFramePreprocessor()
@@ -102,12 +103,14 @@ class OpenFEFeatureEngineering:
         self.start_time = time.time()
         self._print_experiment_setup()
 
+        # preprocess for openfe
+        self.preprocess_data()
+
+        print("\nScoring original dataset...")
         self.original_score = self.score_dataset(
             self.train_df, self.test_df, self.metadata, n_cv_folds=self.n_cv_folds, complete_setup_kit_name=f"{self.exp_name}_original"
         )
-
-        # preprocess for openfe
-        self.preprocess_data()
+        print(f"Original score: {self.original_score}")
 
         # create new OpenFE features or load them if they already exist
         self.openfe_features = self.generate_and_save_features()
@@ -281,11 +284,13 @@ class OpenFEFeatureEngineering:
             "feature_boosting": self.feature_boosting,
             "feature_selection_method": self.feature_selection_method,
             "n_new_features": self.n_new_features,
+            "best_n_selected_features": int(self.best_n_selec_feat),
             "total_time_seconds": time.time() - self.start_time,
             "score_name": self.score_name,
             "objective_direction": self.objective_direction,
             "data_name": self.data_name,
             "n_feat_to_test": self.n_feat_to_test,
+            "n_cv_folds": self.n_cv_folds,
             "original_score": self.original_score,
         }
 
@@ -317,7 +322,15 @@ class OpenFEFeatureEngineering:
         self.ramp_kit_path = os.path.join(self.ramp_dirs_path, 'ramp_kits')
         self.tmp_path = os.path.join(self.results_dir, 'tmp')
 
-    def _created_dirs(self):
+    def _create_dirs(self):
+        if os.path.exists(self.results_dir):
+            print(f"Warning: results directory {self.results_dir} already exists. Contents may be overwritten.")
+            if not self.overwrite_results_dir:
+                raise FileExistsError(f"Results directory {self.results_dir} already exists and overwrite_results_dir is set to False.")
+            else:
+                print(f"Overwriting contents of {self.results_dir}...")
+                shutil.rmtree(self.results_dir)
+
         os.makedirs(self.results_dir, exist_ok=True)
         os.makedirs(self.ramp_setup_kit_path, exist_ok=True)
         os.makedirs(self.ramp_kit_path, exist_ok=True)

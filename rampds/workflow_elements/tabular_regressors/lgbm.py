@@ -5,8 +5,8 @@ from sklearn.multioutput import MultiOutputRegressor
 from ramphy import Hyperparameter
 
 # RAMP START HYPERPARAMETERS
-colsample_bytree = Hyperparameter(dtype='float', default=0.7, values=[0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-colsample_bynode = Hyperparameter(dtype='float', default=0.8, values=[0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+colsample_bytree = Hyperparameter(dtype='float', default=0.7, values=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+colsample_bynode = Hyperparameter(dtype='float', default=0.8, values=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
 min_split_gain = Hyperparameter(dtype='float', default=0.0, values=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0])
 learning_rate = Hyperparameter(dtype='float', default=0.1, values=[0.0005, 0.001, 0.002, 0.005, 0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
 max_depth = Hyperparameter(dtype='int', default=35, values=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100])

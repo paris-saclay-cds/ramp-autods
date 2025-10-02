@@ -228,6 +228,7 @@ class OpenFEFeatureEngineering:
         mean_score_value, _ = run_ramp_experiment(
             complete_setup_kit_name=complete_setup_kit_name,
             n_cv_folds_arg=n_cv_folds,
+            prediction_type=self.prediction_type,
             base_ramp_setup_kits_path=self.ramp_setup_kit_path,
             base_ramp_kits_path=self.ramp_kit_path,
             clean_ramp_kit=self.clean_ramp_kits,

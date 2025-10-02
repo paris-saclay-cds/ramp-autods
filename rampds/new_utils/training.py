@@ -11,10 +11,11 @@ from rampds.scripts.foundation import foundation_models
 from rampds.actions import _mean_score
 
 
-# TODO: surely modify the API to only give necessary args
+# TODO: add regression or classification as an argument
 def run_ramp_experiment(
     complete_setup_kit_name: str,
     n_cv_folds_arg: int,
+    prediction_type: str,
     seed_arg: int = 42,
     version_arg: str = "eval",
     number_arg: int = 1,
@@ -53,6 +54,17 @@ def run_ramp_experiment(
     )
 
     folds_idx = range(n_cv_folds_arg)
+
+    # TODO: fix this hardcoded path later: lgbm.csv in rampds/openfe_utils dir
+    # Use the __file__ attribute to get the directory as a string
+    base_foundation_predictors_dir = os.path.dirname(os.path.abspath(rampds.new_utils.__file__))
+                                                
+    if prediction_type == "regression":
+        foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "fixed_lgbm_hps", "regressor")
+    elif prediction_type == "classification":
+        foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "fixed_lgbm_hps", "classifier")
+    else:
+        raise ValueError(f"Invalid prediction type: {prediction_type}. Must be 'regression' or 'classification'.")
     
     # train the model using fixed lgbm hps in ./lgbm.csv (add this as a parameter later)
     foundation_models(
@@ -64,9 +76,7 @@ def run_ramp_experiment(
         n_folds_final_blend=n_cv_folds_arg,
         base_predictors=["lgbm"],
         deterministic_hash=True,
-        # TODO: fix this hardcoded path later: lgbm.csv in rampds/openfe_utils dir
-        # Use the __file__ attribute to get the directory as a string
-        foundation_predictors_dir=os.path.dirname(os.path.abspath(rampds.new_utils.__file__))
+        foundation_predictors_dir=foundation_predictors_dir
     )
 
     # use the deterministic openfe hash to find the submission

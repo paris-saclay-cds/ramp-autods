@@ -34,7 +34,7 @@ class OpenFEFeatureEngineering:
         clean_ramp_kits=False,
         # openfe parameters
         verbose=False, 
-        max_new_feat_ratio=30, 
+        max_new_feat_ratio=4.0, 
         n_jobs_gen=16, 
         min_cand_feat=10000, 
         n_data_blocks=2, 

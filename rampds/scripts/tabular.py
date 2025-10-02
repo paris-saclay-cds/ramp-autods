@@ -11,7 +11,7 @@ import ramphy as rh
 import rampds as rs
 
 from rampds.scripts.openfe import OpenFEFeatureEngineering
-from rampds.openfe_utils.utils import DataFramePreprocessor
+from rampds.new_utils.utils import DataFramePreprocessor
 
 def create_dummy_targets_and_encode_labels(
     train_data, test_data, target_cols, prediction_type):
@@ -85,12 +85,8 @@ def tabular_setup(
             test_data, 
             metadata,
             data_name=data_name,
-            # add a small cv folds number for testing
-            n_cv_folds=5,
-            # don't delete the ramp setup / kits for testing
-            clean_ramp_kits=False,
-            # TODO: fix a directory for the openfe results (features + metadata + ramp kits & setup kits)
-            results_path="./"
+            n_cv_folds=5, # add a small cv folds number for testing
+            clean_ramp_kits=False,  # don't delete the ramp setup / kits for testing
         )
 
         # TODO: see if we keep these experiment results or not

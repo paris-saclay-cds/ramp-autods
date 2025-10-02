@@ -69,7 +69,7 @@ def run_ramp_experiment(
         deterministic_hash=True,
         # TODO: fix this hardcoded path later: lgbm.csv in rampds/openfe_utils dir
         # Use the __file__ attribute to get the directory as a string
-        foundation_predictors_dir=os.path.dirname(os.path.abspath(rampds.openfe_utils.__file__))
+        foundation_predictors_dir=os.path.dirname(os.path.abspath(rampds.new_utils.__file__))
     )
 
     # use the deterministic openfe hash to find the submission
@@ -86,7 +86,7 @@ def run_ramp_experiment(
 
     return scores_dict["mean_score"], scores_dict
 
-from rampds.openfe_utils.utils import cleanup_ramp_kit
+from rampds.new_utils.utils import cleanup_ramp_kit
 
 def get_prediction_type(prediction_type):
     """Return either 'regression' or 'classification' based on the prediction type.

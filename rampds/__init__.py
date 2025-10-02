@@ -1,5 +1,5 @@
 from . import actions
-from . import utils
+from . import new_utils
 from .scripts import foundation
 from .scripts import orchestration
 from .scripts import blend_at_round
@@ -26,6 +26,7 @@ __all__ = [
     "tabular_cat_col_encoders_submit",
     "setup",
     "utils",
+    "new_utils",
     "score_name_type_map",
     "actions",
 ]

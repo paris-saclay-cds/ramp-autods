@@ -44,7 +44,7 @@ class OpenFEFeatureEngineering:
         feat_selec_method="grid_search",
         n_feat_to_test=[1, 2, 5, 10, 15, 20, 30, 50, 100, 200],
         # results storing
-        results_path="./",
+        results_path="openfe_experiments/",
         ramp_dirs_path=None,
     ):  
         # data inputs

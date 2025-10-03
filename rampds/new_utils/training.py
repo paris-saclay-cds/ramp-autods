@@ -59,9 +59,9 @@ def run_ramp_experiment(
     # Use the __file__ attribute to get the directory as a string
     base_foundation_predictors_dir = os.path.dirname(os.path.abspath(rampds.new_utils.__file__))
                                                 
-    if prediction_type == "regression":
+    if "regression" in prediction_type:
         foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "fixed_lgbm_hps", "regressor")
-    elif prediction_type == "classification":
+    elif "classification" in prediction_type:
         foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "fixed_lgbm_hps", "classifier")
     else:
         raise ValueError(f"Invalid prediction type: {prediction_type}. Must be 'regression' or 'classification'.")

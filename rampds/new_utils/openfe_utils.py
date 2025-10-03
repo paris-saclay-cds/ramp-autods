@@ -52,7 +52,16 @@ class OpenFEUtils:
         # return f"{min_cand_feat//1000}k_min_cand_feat_{data_blocks}_data_blocks_feature_boost_{feature_boost}_{selection_method}"
     
     @staticmethod
-    def plot_and_save_scores(n_feat, scores, original_score, score_name, data_name, objective_direction, results_dir):
+    def plot_and_save_scores(
+        n_feat, 
+        scores, 
+        original_score, 
+        score_name, 
+        data_name, 
+        objective_direction, 
+        results_dir,
+        experiment_label=None
+        ):
         """
         Plots the scores and saves the visualization to a file.
 
@@ -66,16 +75,23 @@ class OpenFEUtils:
             results_dir (str): Directory to save the plot.
         """
         plt.figure(figsize=(12, 8))
+
         plt.plot(n_feat, scores, marker='o', label='OpenFE Scores', color='blue', linewidth=2)
         plt.axhline(y=original_score, color='red', linestyle='--', label='Original Score', linewidth=2)
 
         # Add labels and title with improved formatting
         plt.xlabel('Number of Selected Features', fontsize=14)
         plt.ylabel(f'Mean Score ({score_name}) ', fontsize=14)
-        plt.title(f'Performance of OpenFE on `{data_name}` Challenge (Score: {score_name}, Objective: {objective_direction})', fontsize=15)
+
+        plt.title(f'Performance of OpenFE on `{data_name}` (score: {score_name}, obj_dir: {objective_direction})', fontsize=15)
+        
         # Add legend and grid for better readability
         plt.legend(fontsize=12)
         plt.grid(True, linestyle='--', alpha=0.7)
+
+        if experiment_label:
+            plt.figtext(0.5, 0.02, f'Experiment: {experiment_label}', ha='center', fontsize=10, style='italic')
+
 
         # Save the improved plot
         plot_path = os.path.join(results_dir, scores_plot_file)

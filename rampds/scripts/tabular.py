@@ -73,10 +73,15 @@ def tabular_setup(
     metadata = json.load(open(download_dir / "metadata.json"))
 
     # Add optional OpenFE feature engineering step
-    if feature_engineering == "openfe":
-        # maybe change the API later to remove data_name (only need it to create ramp kits names / save results)
-        data_name = DataFramePreprocessor.sanitize_name(metadata["title"])
+    if feature_engineering and "openfe" in feature_engineering:
+        # add a data name for OpenFE results names (e.g kaggle_abalone)
+        data_name = DataFramePreprocessor.sanitize_name(metadata["title"]).lower()
         print(f"\nRunning OpenFE feature engineering on {data_name}...\n")
+
+        # Parse blend option - support both "openfe_blend" or "openfe:blend"
+        blend = False
+        if "blend" in feature_engineering:
+            blend = True
 
         # create OpenFE experiment object
         openfe_experiment = OpenFEFeatureEngineering(
@@ -86,6 +91,7 @@ def tabular_setup(
             data_name=data_name,
             n_cv_folds=30, # add a small cv folds number for testing
             clean_ramp_kits=False,  # don't delete the ramp setup / kits for testing
+            blend=blend # use a blend of models or not for scoring
         )
 
         # run the experiment with rs.actions.ramp_action to save time and results (see if we need to keep the results)

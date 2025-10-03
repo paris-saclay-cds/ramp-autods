@@ -32,6 +32,8 @@ class OpenFEFeatureEngineering:
         # scoring inputs
         n_cv_folds=30,
         clean_ramp_kits=False,
+        blend=True,
+        # blend=False,
         # openfe parameters
         verbose=False, 
         max_new_feat_ratio=4.0, 
@@ -56,6 +58,7 @@ class OpenFEFeatureEngineering:
         # scorer
         self.n_cv_folds = n_cv_folds
         self.clean_ramp_kits = clean_ramp_kits
+        self.blend = blend
 
         # openfe parameters
         self.max_new_features_ratio = max_new_feat_ratio
@@ -72,10 +75,10 @@ class OpenFEFeatureEngineering:
         self.exp_type = OpenFEUtils.get_experiment_type(
             min_cand_feat, n_data_blocks, feat_boost, feat_selec_method
         )
+        # TODO: add an option if blend
         self.exp_name = f"{self.data_name}_{self.exp_type}"
-        # TODO: see how we handle the creation of setup kits for openfe experiments
-        # Where do we put them ? Do we automatically delete them ? etc.
-        self.results_dir = os.path.join(results_path, f"{self.data_name}_openfe_{self.exp_type}", self.data_name)
+        self.exp_name += "_blend" if blend else ""
+        self.results_dir = os.path.join(results_path, f"openfe_{self.exp_name}", self.data_name)
 
         # TODO: clean this
         self.ramp_dirs_path = ramp_dirs_path if ramp_dirs_path is not None else self.results_dir
@@ -232,6 +235,7 @@ class OpenFEFeatureEngineering:
             base_ramp_setup_kits_path=self.ramp_setup_kit_path,
             base_ramp_kits_path=self.ramp_kit_path,
             clean_ramp_kit=self.clean_ramp_kits,
+            blend=self.blend
         )
 
         return mean_score_value
@@ -293,11 +297,14 @@ class OpenFEFeatureEngineering:
             "n_feat_to_test": self.n_feat_to_test,
             "n_cv_folds": self.n_cv_folds,
             "original_score": self.original_score,
+            "blend": self.blend,
         }
 
         # save metadata and scores df as json and csv
         FileUtils.save_json(self.experiment_metadata, self.experiment_metadata_path)
         FileUtils.save_csv(self.scores_df, self.scores_saving_path)
+
+        experiment_label = f"blend={self.blend}, cv_folds={self.n_cv_folds}"
 
         # save results plot 
         OpenFEUtils.plot_and_save_scores(
@@ -308,6 +315,7 @@ class OpenFEFeatureEngineering:
             objective_direction=self.objective_direction,
             score_name=self.score_name,
             results_dir=self.results_dir,
+            experiment_label=experiment_label
         )
 
     # ==========================================================================
@@ -500,6 +508,8 @@ class OpenFEFeatureEngineering:
         print(f"Results directory: {self.results_dir}")
         print(f"Scores results saving path: {self.scores_saving_path}")
         print(f"Number of CV folds: {self.n_cv_folds}")
+        print(f"Clean ramp kits after scoring: {self.clean_ramp_kits}")
+        print(f"Using blend of models for scoring: {self.blend}")
         
         print(f"\nOpenFE hyperparameters:")
         print(f"Minimum candidate features: {self.min_candidate_features}")

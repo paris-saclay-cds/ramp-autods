@@ -22,6 +22,7 @@ def run_ramp_experiment(
     clean_ramp_kit: bool = True,
     base_ramp_setup_kits_path: str = ".",
     base_ramp_kits_path: str = ".",
+    blend=False,
 ):
     """
     Runs a RAMP experiment for a given setup kit, updates hyperparameters,
@@ -58,11 +59,16 @@ def run_ramp_experiment(
     # TODO: fix this hardcoded path later: lgbm.csv in rampds/openfe_utils dir
     # Use the __file__ attribute to get the directory as a string
     base_foundation_predictors_dir = os.path.dirname(os.path.abspath(rampds.new_utils.__file__))
+
+    if blend:
+        base_foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "blended_fixed_lgbm_hps")
+    else:
+        base_foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "fixed_lgbm_hps")
                                                 
     if "regression" in prediction_type:
-        foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "fixed_lgbm_hps", "regressor")
+        foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "regressor")
     elif "classification" in prediction_type:
-        foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "fixed_lgbm_hps", "classifier")
+        foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "classifier")
     else:
         raise ValueError(f"Invalid prediction type: {prediction_type}. Must be 'regression' or 'classification'.")
     

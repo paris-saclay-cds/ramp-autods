@@ -9,11 +9,6 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 
-# TODO: absolutely change this later for open sourcing
-# NAS Disk
-NAS_ROOT_PATH = "/nas"
-RAMP_KITS_NAS_PATH = f"{NAS_ROOT_PATH}/ramp-kits"
-RAMP_SETUP_KITS_NAS_PATH = f"{NAS_ROOT_PATH}/ramp-setup-kits"
 
 #TODO: create a dataclass with these files paths
 # data file names for paths

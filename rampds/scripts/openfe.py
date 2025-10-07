@@ -21,6 +21,9 @@ from rampds.new_utils.utils import (
 )
 
 
+# Maybe modify the current API because relies a lot on internal attributes of the class
+# So a lot of functions have unclear arguments as they are not passed as input but taken from self 
+# Might need to change the docstring style also
 class OpenFEFeatureEngineering:
     def __init__(
         self,
@@ -31,7 +34,7 @@ class OpenFEFeatureEngineering:
         data_name,
         # scoring inputs
         n_cv_folds=30,
-        clean_ramp_kits=False,
+        clean_ramp_kits=True,
         blend=True,
         # blend=False,
         # openfe parameters
@@ -102,6 +105,13 @@ class OpenFEFeatureEngineering:
     
     # @rs.actions.ramp_action
     def run_feature_engineering_and_selection(self):
+        """Run feature engineering with OpenFE and selection process on created features.
+        The results are saved in the specified results directory, and the new updated datasets are 
+        stored in the class under the attributes `updated_train_df`, `updated_test_df`, and `updated_metadata`. 
+
+        Returns:
+            dict: A dictionary containing the results metadata of the experiment.
+        """
         print("\nStarting OpenFE feature engineering experiment...")        
         self.start_time = time.time()
         self._print_experiment_setup()
@@ -132,6 +142,7 @@ class OpenFEFeatureEngineering:
         self._print_final_results()
 
         #TODO: see what we want to return here
+        # only return a dict without dfs and metadata cause needs to be pickled w ramp action
         result_dict = {
             "best_n_selected_features": self.best_n_selec_feat,
             "best_score": self.best_score,
@@ -140,18 +151,21 @@ class OpenFEFeatureEngineering:
             "total_time_seconds": time.time() - self.start_time
         }
 
-        # TODO: see if we also want to save these + automatic plots in the results dir
-        # see https://rnd-gitlab-eu.huawei.com/Noahs-Ark/research_projects/feature_selection_autods/-/blob/main/feature_selection/feature_engineering/openfe.py?ref_type=heads#L553
-
-        # only return a dict without dfs and metadata cause needs to be pickled w ramp action
         return result_dict
     
     # return the actual updated in another function to avoid pickling issues
     def load_best_updated_data(self):
+        """Load the best updated dataframes and metadata.
+
+        Returns:
+            tuple: A tuple containing the updated training dataframe, updated testing dataframe, and updated metadata.
+        """
         return self.updated_train_df, self.updated_test_df, self.updated_metadata
     
         
     def load_data(self):
+        """Load and initialize data-related attributes
+        """
         print("\nLoading data...\n")
         self.target_column_name, self.id_column_name, self.score_name, self.prediction_type, self.objective_direction = extract_metadata_infos(self.metadata)
         self.n_original_features = len(self.test_df.columns)
@@ -164,6 +178,8 @@ class OpenFEFeatureEngineering:
         print(f"\n{'-'*50}\n")
 
     def preprocess_data(self):
+        """Preprocess the training data for OpenFE feature generation.
+        """
         print("\nPreprocessing data...")
         self.df_preprocessor = DataFramePreprocessor()
         
@@ -184,6 +200,11 @@ class OpenFEFeatureEngineering:
         print(f"\n{'-'*50}\n")
 
     def generate_and_save_features(self):
+        """Generate new features using OpenFE and save them in a pickle file.
+
+        Returns:
+            features: custom OpenFE feature objects generated.
+        """
         print("\n" + "=" * 50)
         print("Starting feature engineering experiment with OpenFE")
         print("=" * 50 + "\n")
@@ -218,6 +239,20 @@ class OpenFEFeatureEngineering:
         return features
     
     def score_dataset(self, train_df, test_df, metadata, complete_setup_kit_name, n_cv_folds=30):
+        """ Score the dataset using ramp experiment. 
+        Save the updated ramp directories if self.clean_ramp_kits is True.
+        Use a blend of models for evaluation if self.blend is True.
+
+        Args:
+            train_df (pd.DataFrame): The training dataframe.
+            test_df (pd.DataFrame): The testing dataframe.
+            metadata (dict): The metadata dictionary.
+            complete_setup_kit_name (str): The name of the complete setup kit.
+            n_cv_folds (int, optional): The number of cross-validation folds. Defaults to 30.
+
+        Returns:
+            float: The mean score value obtained from the ramp experiment.
+        """
         updated_ramp_setup_kit_path = os.path.join(self.ramp_setup_kit_path, complete_setup_kit_name)
 
         save_ramp_setup_kit_data(
@@ -227,7 +262,6 @@ class OpenFEFeatureEngineering:
             ramp_setup_kit=updated_ramp_setup_kit_path
         )
 
-        # TODO: fix args and add wether it is classification or regression
         mean_score_value, _ = run_ramp_experiment(
             complete_setup_kit_name=complete_setup_kit_name,
             n_cv_folds_arg=n_cv_folds,
@@ -241,13 +275,21 @@ class OpenFEFeatureEngineering:
         return mean_score_value
 
     def feature_selection_experiment(self):
+        """Run feature selection experiments using the generated features.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the scores for each feature selection experiment.
+        """
         print("\n" + "=" * 50)
         print("Starting feature selection experiments")
         print("=" * 50 + "\n")
 
+        # init a scores list for all the different number of features to add to the original dataset
         scores_list = []
+        # define a maximum number of features to test based on original features and ratio
         max_features_to_test = self.max_new_features_ratio * self.n_original_features
 
+        # iterate through the list of number of features to test
         for n_selected_features in self.n_feat_to_test:
             print("\n" + "-" * 50)
             print(f"Running experiment with {n_selected_features} selected features")
@@ -261,6 +303,7 @@ class OpenFEFeatureEngineering:
                 selected_features = self.openfe_features[:n_selected_features]
                 updated_train_df, updated_test_df, updated_metadata = self._update_dataframes_and_metadata(selected_features)
 
+                # evaluate the new dataset
                 complete_setup_kit_name = f"{self.exp_name}_OpenFE_{n_selected_features}_feat"
                 mean_score_value = self.score_dataset(
                     train_df=updated_train_df, 
@@ -270,18 +313,23 @@ class OpenFEFeatureEngineering:
                     n_cv_folds=self.n_cv_folds,
                 )
          
-                # mean_score_value = self._evaluate_dataset_score(updated_train_df, updated_test_df, updated_metadata)
                 print(f"Mean score value for {n_selected_features} selected features: {mean_score_value}")
                 scores_list.append((n_selected_features, mean_score_value))
             except Exception as e:
                 print(f"Error selecting {n_selected_features} features: {e}")
                 continue
-
+                
+        # create a scores dataframe from the scores list
         scores_df = self._create_scores_df(scores_list=scores_list)
 
         return scores_df
     
     def save_results(self):
+        """Save the results of the feature selection experiments:
+        - experiment metadata
+        - scores dataframe
+        - results plot
+        """
         print("\nSaving results...")
         self.experiment_metadata = {
             "min_candidate_features": self.min_candidate_features,
@@ -322,8 +370,9 @@ class OpenFEFeatureEngineering:
     # --- Private Methods ---
     # ==========================================================================
     
-    # TODO: potentially created directories for all these
     def _setup_paths(self):
+        """ Setup paths for results and data storage.
+        """
         self.scores_saving_path = os.path.join(self.results_dir, "scores.csv")
         self.experiment_metadata_path = os.path.join(self.results_dir, "experiment_metadata.json")
         self.new_features_saving_path = os.path.join(self.results_dir, "openfe_features.pkl")
@@ -332,6 +381,11 @@ class OpenFEFeatureEngineering:
         self.tmp_path = os.path.join(self.results_dir, 'tmp')
 
     def _create_dirs(self):
+        """ Create necessary directories for results and data storage.
+
+        Raises:
+            FileExistsError: If the results directory already exists and self.overwrite_results_dir is set to False.
+        """
         if os.path.exists(self.results_dir):
             print(f"Warning: results directory {self.results_dir} already exists. Contents may be overwritten.")
             if not self.overwrite_results_dir:
@@ -348,12 +402,31 @@ class OpenFEFeatureEngineering:
     # Utils for getting and renaming OpenFE features 
 
     def _get_new_feature_names(self, features):
+        """ Get informative names for the new OpenFE features.
+        e.g 'autoFE_f_0' --> 'feature1__div__feature2'
+
+        Args:
+            features (list): List of feature names.
+
+        Returns:
+            list: List of informative feature names.
+        """
         original_feature_names = [tree_to_formula(f) for f in features]
         feature_names = OpenFEUtils.rename_OpenFE_columns(original_feature_names) 
         
         return feature_names
 
     def _rename_openfe_columns(self, selected_features, new_train_x, new_test_x):
+        """ Rename the columns of the new OpenFE features in the transformed datasets.
+
+        Args:
+            selected_features (list): List of selected feature names.
+            new_train_x (pd.DataFrame): Transformed training dataset.
+            new_test_x (pd.DataFrame): Transformed testing dataset.
+
+        Returns:
+            tuple: Updated training and testing datasets with renamed columns.
+        """
         # Generate the default OpenFE names ('autoFE_f_0', 'autoFE_f_1', ...)
         default_openfe_names = [f'autoFE_f_{i}' for i in range(len(selected_features))]
         
@@ -396,8 +469,9 @@ class OpenFEFeatureEngineering:
         train_df_sanitized = self.df_preprocessor.sanitize_dataframe_columns(self.train_df)
         test_df_sanitized = self.df_preprocessor.sanitize_dataframe_columns(self.test_df)
 
-        transform_tmp_path = os.path.join(self.tmp_path, f"openfe_tmp_data_{self.exp_name}.feather")
         # TODO: used updated version of openfe to be able to specify the tmp path (custom modification)
+        transform_tmp_path = os.path.join(self.tmp_path, f"openfe_tmp_data_{self.exp_name}.feather")
+
         # transform the datasets with new OpenFE features and restore original col names
         new_train_x, new_test_x = transform(
             train_df_sanitized, 
@@ -454,6 +528,14 @@ class OpenFEFeatureEngineering:
     # Utils for handling scores and best features configuration
     
     def _create_scores_df(self, scores_list):
+        """ Create a DataFrame from the scores list.
+
+        Args:
+            scores_list (list): List of scores.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the scores.
+        """
         scores_df = pd.DataFrame(scores_list, columns=["n_selected_features", "mean_score"])
         scores_df["original_score"] = self.original_score
         return scores_df

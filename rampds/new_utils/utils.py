@@ -251,34 +251,6 @@ def sanitize_directory_path(path):
         # For paths with no directory component
         return sanitized_base
 
-
-def get_complete_kit_name(data_name, data_suffix=None, add_kaggle_prefix=False):
-    """Give the complete name of a kit
-
-    Args:
-        data_name (str): Name of the dataset.
-        data_suffix (str, optional): Suffix to append to the dataset name. Defaults to None.
-        add_kaggle_prefix (bool, optional): Whether to add kaggle prefix. Defaults to False.
-    """
-    suffix_text = f"_{data_suffix}" if data_suffix is not None else ""
-    prefix_text = "kaggle_" if add_kaggle_prefix else "" 
-   
-    return f"{prefix_text}{data_name}{suffix_text}"
-
-
-def get_kaggle_ramp_setup_kit_path(data_name, base_ramp_setup_kit_path=RAMP_SETUP_KITS_NAS_PATH, add_kaggle_prefix=True):
-    """Get the path for the Kaggle RAMP setup kit.
-
-    Args:
-        data_name (str): name of the dataset (e.g., "abalone").
-        base_ramp_setup_kit_path (str, optional): path to the base RAMP setup kit. Defaults to RAMP_SETUP_KITS_NAS_PATH.
-
-    Returns:
-        str: path to the Kaggle RAMP setup kit.
-    """
-    return f"{base_ramp_setup_kit_path}/{get_complete_kit_name(data_name, add_kaggle_prefix=add_kaggle_prefix)}"
-
-
 def get_data_paths(ramp_setup_kit_name):
     """Get the paths for the data files in the RAMP setup kit.
 
@@ -303,7 +275,6 @@ def get_data_paths(ramp_setup_kit_name):
         public_ldbd_scores_path,
         sample_submission_path,
     )
-
 
 def save_ramp_setup_kit_data(
     train_df, test_df, metadata, ramp_setup_kit, additional_infos=None, method_name=None
@@ -368,7 +339,6 @@ def save_ramp_setup_kit_data(
         _save_method_file(ramp_setup_kit, method_name)
     
     print(f"Saved RAMP setup kit data to {ramp_setup_kit}")
-
 
 def _save_method_file(ramp_setup_kit, method_name):
     """Helper function to save method name file, removing any existing .md files."""
@@ -441,71 +411,6 @@ def _load_optional_file(file_path: str, loader_func):
         return loader_func(file_path)
     return None
 
-
-def update_train_test(train_df, test_df, curr_columns, target_column, id_column):
-    """Update the train and test DataFrames to include only the specified columns. 
-
-    Args:
-        train_df (pd.DataFrame): The training DataFrame.
-        test_df (pd.DataFrame): The testing DataFrame.
-        curr_columns (list): The list of current feature columns to include.
-        target_column (str): The target column name.
-        id_column (str): The ID column name.
-
-    Returns:
-        tuple: A tuple containing the updated training and testing DataFrames.
-    """
-    updated_columns = [id_column, *curr_columns]
-    curr_train_df = train_df[[*updated_columns, target_column]]
-    curr_test_df = test_df[[*updated_columns]]
-    return curr_train_df, curr_test_df
-
-
-def update_metadata(metadata, curr_columns, id_column):
-    """Update the metadata to reflect the current columns and ID column.
-
-    Args:
-        metadata (dict): Metadata dictionary containing feature information.
-        curr_columns (list): List of current feature columns.
-        id_column (str): The ID column name.
-
-    Returns:
-        dict: Updated metadata dictionary reflecting the current columns.
-    """
-    curr_metadata = deepcopy(metadata)
-    updated_columns = [id_column, *curr_columns]
-    curr_feature_types_dict = {
-        feature: curr_metadata["data_description"]["feature_types"][feature]
-        for feature in updated_columns
-    }
-    curr_metadata["data_description"]["feature_types"] = curr_feature_types_dict
-    return curr_metadata
-
-
-def update_train_test_metadata(
-    train_df, test_df, metadata, curr_columns, target_column_name, id_column
-):
-    """Update the train and test DataFrames and metadata to reflect the current columns.
-
-    Args:
-        train_df (pd.DataFrame): original training DataFrame.
-        test_df (pd.DataFrame): original testing DataFrame.
-        metadata (dict): Metadata dictionary containing feature information.
-        curr_columns (list): List of current feature columns.
-        target_column_name (str): The target column name.
-        id_column (str): The ID column name.
-
-    Returns:
-        tuple: A tuple containing the updated training DataFrame, testing DataFrame, and metadata dictionary.
-    """
-    curr_train_df, curr_test_df = update_train_test(
-        train_df, test_df, curr_columns, target_column_name, id_column
-    )
-    curr_metadata = update_metadata(metadata, curr_columns, id_column)
-    print("Updated train and test data metadata.")
-    return curr_train_df, curr_test_df, curr_metadata
-
-
 def get_new_columns_name_dtype_and_check(train_df, test_df, updated_train_df, updated_test_df):
     """Verify if the original info of the dataframes is maintained after updates with addition of new columns, and return the new column names.
     This function checks that the updated train and test dataframes contain the same number of rows as the original datasets,
@@ -528,9 +433,11 @@ def get_new_columns_name_dtype_and_check(train_df, test_df, updated_train_df, up
 
     print(new_column_names)
     new_train_column_types = updated_train_df[new_column_names].dtypes
-    new_test_column_types = updated_test_df[new_column_names].dtypes
+    # new_test_column_types = updated_test_df[new_column_names].dtypes
+
     # TODO: I don't remember why I commented this but I think it led to undesired errors
     # assert (new_train_column_types == new_test_column_types).all(), "New columns in train and test DataFrames have different types."
+    
     new_column_types = new_train_column_types
 
     # Check that all original columns are present and unchanged

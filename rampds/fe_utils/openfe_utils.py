@@ -3,7 +3,7 @@ import re
 
 import matplotlib.pyplot as plt
 
-from rampds.new_utils.utils import FileUtils
+from rampds.fe_utils.utils import FileUtils
 
 
 # TODO: add these in a class / UPPERCASE if use them as constants

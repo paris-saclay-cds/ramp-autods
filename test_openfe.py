@@ -1,7 +1,7 @@
 import rampds
-from rampds.new_utils.utils import load_ramp_setup_kit_data, get_kaggle_ramp_setup_kit_path
-from rampds.new_utils.openfe_utils import *
-from rampds.new_utils.training import *
+from rampds.fe_utils.utils import load_ramp_setup_kit_data, get_kaggle_ramp_setup_kit_path
+from rampds.fe_utils.openfe_utils import *
+from rampds.fe_utils.training import *
 from rampds.scripts.openfe import OpenFEFeatureEngineering
 
 data_name = 'wine'

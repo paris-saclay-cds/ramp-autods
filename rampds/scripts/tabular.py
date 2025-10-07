@@ -11,7 +11,7 @@ import ramphy as rh
 import rampds as rs
 
 from rampds.scripts.openfe import OpenFEFeatureEngineering
-from rampds.new_utils.utils import DataFramePreprocessor
+from rampds.fe_utils.utils import DataFramePreprocessor
 
 def create_dummy_targets_and_encode_labels(
     train_data, test_data, target_cols, prediction_type):

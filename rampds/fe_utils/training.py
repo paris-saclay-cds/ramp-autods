@@ -58,7 +58,7 @@ def run_ramp_experiment(
 
     # TODO: fix this hardcoded path later: lgbm.csv in rampds/openfe_utils dir
     # Use the __file__ attribute to get the directory as a string
-    base_foundation_predictors_dir = os.path.dirname(os.path.abspath(rampds.new_utils.__file__))
+    base_foundation_predictors_dir = os.path.dirname(os.path.abspath(rampds.fe_utils.__file__))
 
     if blend:
         base_foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "blended_fixed_lgbm_hps")
@@ -99,7 +99,7 @@ def run_ramp_experiment(
 
     return scores_dict["mean_score"], scores_dict
 
-from rampds.new_utils.utils import cleanup_ramp_kit
+from rampds.fe_utils.utils import cleanup_ramp_kit
 
 def get_prediction_type(prediction_type):
     """Return either 'regression' or 'classification' based on the prediction type.

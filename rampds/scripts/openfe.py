@@ -9,9 +9,9 @@ import pandas as pd
 
 from openfe import OpenFE, tree_to_formula, transform
 
-from rampds.new_utils.openfe_utils import OpenFEUtils
-from rampds.new_utils.training import run_ramp_experiment
-from rampds.new_utils.utils import (
+from rampds.fe_utils.openfe_utils import OpenFEUtils
+from rampds.fe_utils.training import run_ramp_experiment
+from rampds.fe_utils.utils import (
     DataFramePreprocessor,
     save_ramp_setup_kit_data,
     get_new_columns_name_dtype_and_check,

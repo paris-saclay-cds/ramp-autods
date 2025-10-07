@@ -78,9 +78,10 @@ class OpenFEFeatureEngineering:
         self.exp_type = OpenFEUtils.get_experiment_type(
             min_cand_feat, n_data_blocks, feat_boost, feat_selec_method
         )
-        # TODO: add an option if blend
+
+        # results storing
         self.exp_name = f"{self.data_name}_{self.exp_type}"
-        self.exp_name += "_blend" if blend else ""
+        self.exp_name += "_blend_4_models" if self.blend else ""
         self.results_dir = os.path.join(results_path, f"openfe_{self.exp_name}", self.data_name)
 
         # TODO: clean this
@@ -188,6 +189,7 @@ class OpenFEFeatureEngineering:
         self.train_x = self.train_df.drop(columns=[self.target_column_name, self.id_column_name])
         self.train_y = self.train_df[[self.target_column_name]]
         
+        # TODO: check that there is indeed no more missing values after this
         print(f"\nFilling missing values and sanitizing column names...")
         self.train_x_sanitized = self.df_preprocessor.auto_fill_missing_df(self.df_preprocessor.sanitize_dataframe_columns(self.train_x))
         self.train_y_sanitized = self.df_preprocessor.sanitize_dataframe_columns(self.train_y)

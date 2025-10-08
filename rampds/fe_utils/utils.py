@@ -19,6 +19,7 @@ PRIV_LDBD_SCORES = "private_leaderboard_scores.npy"
 PUB_LDBD_SCORES = "public_leaderboard_scores.npy"
 SAMPLE_SUBMISSION = "sample_submission.csv"
 HPS_TEXT = 'hps_text.py'
+OPENFE_TEST_DIR = "openfe_test"
 
 
 class FileUtils:

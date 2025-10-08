@@ -11,7 +11,7 @@ import ramphy as rh
 import rampds as rs
 
 from rampds.scripts.openfe import OpenFEFeatureEngineering
-from rampds.fe_utils.utils import DataFramePreprocessor
+from rampds.fe_utils.utils import DataFramePreprocessor, OPENFE_TEST_DIR
 
 def create_dummy_targets_and_encode_labels(
     train_data, test_data, target_cols, prediction_type):
@@ -83,6 +83,11 @@ def tabular_setup(
         if "blend" in feature_engineering:
             blend = True
 
+        results_path = "openfe_experiments/"
+        if "test" in feature_engineering:
+            results_path = OPENFE_TEST_DIR
+            print("Running test experiment with OpenFE, all directories will be deleted after.")
+
         # create OpenFE experiment object
         openfe_experiment = OpenFEFeatureEngineering(
             train_data, 
@@ -91,7 +96,8 @@ def tabular_setup(
             data_name=data_name,
             n_cv_folds=30, # add a small cv folds number for testing
             clean_ramp_kits=False,  # don't delete the ramp setup / kits for testing
-            blend=blend # use a blend of models or not for scoring
+            blend=blend, # use a blend of models or not for scoring
+            results_path=results_path # results path
         )
 
         # run the experiment with rs.actions.ramp_action to save time and results (see if we need to keep the results)

@@ -55,7 +55,7 @@ class OpenFEFeatureEngineering:
         self.train_df = train_df
         self.test_df = test_df
         self.metadata = metadata
-        self.data_name = data_name # TODO see if not directly take things from metadata
+        self.data_name = data_name # could also directly extract this from metadata
         
         # scorer
         self.n_cv_folds = n_cv_folds
@@ -82,15 +82,14 @@ class OpenFEFeatureEngineering:
         self.exp_name = f"{self.data_name}_{self.exp_type}"
         self.exp_name += "_blend_4_models" if self.blend else ""
         self.results_dir = os.path.join(results_path, f"openfe_{self.exp_name}", self.data_name)
-
-        # TODO: clean this
-        self.ramp_dirs_path = ramp_dirs_path if ramp_dirs_path is not None else self.results_dir
-        self.overwrite_results_dir = overwrite_results_dir
+        self.ramp_dirs_path = ramp_dirs_path if ramp_dirs_path is not None else self.results_dir # could be cleaner (set base ramp paths in openfe results dir)
+        self.overwrite_results_dir = overwrite_results_dir # wether to overwrite the openfe results dir if it already exists
+        #automatically setup paths and create dirs for results / data storage
         self._setup_paths()
         self._create_dirs()
 
-        self.load_data()
-        self.df_preprocessor = DataFramePreprocessor()
+        self.load_data() # could be renamed because no actual loading here (just extracting some infos)
+        self.df_preprocessor = DataFramePreprocessor() # load a simple util class for preprocessing data for openfe (need to fill all NaNs and sanitize col names)
 
     # ==========================================================================
     # --- Public Methods ---
@@ -137,11 +136,11 @@ class OpenFEFeatureEngineering:
         self.best_n_selec_feat, self.best_score = self._get_best_feature_configuration()
         self.updated_train_df, self.updated_test_df, self.updated_metadata = self._update_new_best_data(self.best_n_selec_feat)
 
-        # save results and best setup kit if required # TODO: removed best setup kit
+        # save results to disk and print final results
         self.save_results()
         self._print_final_results()
 
-        #TODO: see what we want to return here
+        #TODO: see what we really want to return here
         # only return a dict without dfs and metadata cause needs to be pickled w ramp action
         result_dict = {
             "best_n_selected_features": self.best_n_selec_feat,
@@ -188,7 +187,6 @@ class OpenFEFeatureEngineering:
         self.train_x = self.train_df.drop(columns=[self.target_column_name, self.id_column_name])
         self.train_y = self.train_df[[self.target_column_name]]
         
-        # TODO: check that there is indeed no more missing values after this
         print(f"\nFilling missing values and sanitizing column names...")
         self.train_x_sanitized = self.df_preprocessor.auto_fill_missing_df(self.df_preprocessor.sanitize_dataframe_columns(self.train_x))
         self.train_y_sanitized = self.df_preprocessor.sanitize_dataframe_columns(self.train_y)
@@ -470,7 +468,7 @@ class OpenFEFeatureEngineering:
         train_df_sanitized = self.df_preprocessor.sanitize_dataframe_columns(self.train_df)
         test_df_sanitized = self.df_preprocessor.sanitize_dataframe_columns(self.test_df)
 
-        # TODO: used updated version of openfe to be able to specify the tmp path (custom modification)
+        # need to use custom version of openfe to be able to specify the tmp path (custom modification compared to original repo)
         transform_tmp_path = os.path.join(self.tmp_path, f"openfe_tmp_data_{self.exp_name}.feather")
 
         # transform the datasets with new OpenFE features and restore original col names

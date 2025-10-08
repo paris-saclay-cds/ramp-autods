@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 
 
-#TODO: create a dataclass with these files paths
 # data file names for paths
+# (would be cleaner to create a dataclass with these files paths)
 TRAIN = "train.csv"
 TEST = "test.csv"
 METADATA = "metadata.json"
@@ -436,7 +436,7 @@ def get_new_columns_name_dtype_and_check(train_df, test_df, updated_train_df, up
     new_train_column_types = updated_train_df[new_column_names].dtypes
     # new_test_column_types = updated_test_df[new_column_names].dtypes
 
-    # TODO: I don't remember why I commented this but I think it led to undesired errors
+    # I don't remember why I commented line below but I think it led to undesired errors
     # assert (new_train_column_types == new_test_column_types).all(), "New columns in train and test DataFrames have different types."
     
     new_column_types = new_train_column_types
@@ -499,6 +499,7 @@ def extract_metadata_infos(metadata, print_value=False):
     return target_column_name, id_column_name, score_name, prediction_type, objective_direction
 
 
+# function can be removed because only does shutil.rmtree (before was checking additional things to prevent removing important dirs)
 def cleanup_ramp_kit(ramp_kit_dir_local_actual, clean_ramp_kit):
     """Cleans up the RAMP kit directory if specified.
 
@@ -508,8 +509,6 @@ def cleanup_ramp_kit(ramp_kit_dir_local_actual, clean_ramp_kit):
     """
     if clean_ramp_kit and os.path.exists(ramp_kit_dir_local_actual):
         print(f"Cleaning up RAMP kit directory: {ramp_kit_dir_local_actual}")
-        # TODO: remove safe delete and replace with shutil.rmtree (even if less safe)
-        # safe_delete(ramp_kit_dir_local_actual)
         shutil.rmtree(ramp_kit_dir_local_actual)
         print(f"Deleted directory: {ramp_kit_dir_local_actual}")
 

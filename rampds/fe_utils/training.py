@@ -12,7 +12,6 @@ from rampds.scripts.foundation import foundation_models
 from rampds.actions import _mean_score
 
 
-# TODO: add regression or classification as an argument
 def run_ramp_experiment(
     complete_setup_kit_name: str,
     n_cv_folds_arg: int,
@@ -57,7 +56,7 @@ def run_ramp_experiment(
 
     folds_idx = range(n_cv_folds_arg)
 
-    # TODO: fix this hardcoded path later: lgbm.csv in rampds/openfe_utils dir
+    # Maybe ix this hardcoded path later: lgbm.csv in rampds/fe_utils dir (e.g maybe put it in a data/ folder at base of directory)
     # Use the __file__ attribute to get the directory as a string
     base_foundation_predictors_dir = os.path.dirname(os.path.abspath(rampds.fe_utils.__file__))
 

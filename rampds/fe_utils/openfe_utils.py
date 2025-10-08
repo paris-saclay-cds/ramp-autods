@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from rampds.fe_utils.utils import FileUtils
 
 
-# TODO: add these in a class / UPPERCASE if use them as constants
+# TODO: add these in a class / UPPERCASE if use them as constants / put them in other shared utils dir
 expe_meta_data_file = "experiment_metadata.json"
 scores_file = "scores.csv"
 scores_plot_file = "openfe_scores_plot.png"
@@ -161,7 +161,7 @@ class OpenFEUtils:
         """
         Get the best number of selected features based on the mean score.
         """
-        # TODO: fix these hardcoded names ... 
+        # TODO: should fix these hardcoded names and put them in constants and in a shared file
         if n_digits_round is None:
             results_df['rounded_mean_score'] = results_df['mean_score']
         else:

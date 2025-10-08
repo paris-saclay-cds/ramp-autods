@@ -68,6 +68,7 @@ def submit_foundation_submissions(
         else:
             # added this raise error because otherwise it lead to understandable errors later
             # TODO: double check it is not something we want to authorize and handle differently (e.g just a warning ?) 
+            # But shouldn't be the case according to Youssef
             raise FileNotFoundError(f"File {best_arms_path} not found.")
     return foundation_submissions
 

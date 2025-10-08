@@ -34,9 +34,8 @@ class OpenFEFeatureEngineering:
         data_name,
         # scoring inputs
         n_cv_folds=30,
-        clean_ramp_kits=True,
-        blend=True,
-        # blend=False,
+        clean_ramp_kits=False, # let to False to keep the ramp kits for debugging
+        blend=False,
         # openfe parameters
         verbose=False, 
         max_new_feat_ratio=4.0, 

@@ -48,9 +48,8 @@ def submit_foundation_submissions(
                     all_hyperparameters += hypers_per_workflow_element[wen]
                 hyper_indices = [h.default_index for h in all_hyperparameters]
                 # added a deterministic hash option for testing purposes, to see how to improve it
-                # TODO: at least store the deterministic hash somewhere it can be shared between files
                 if deterministic_hash:
-                    hyper_hash = "openfe"
+                    hyper_hash = f"openfe_{arm_i}"
                 else:
                     hyper_hash = hashlib.sha256(np.ascontiguousarray(hyper_indices)).hexdigest()[:10]
                 foundation_submission_path = Path(f"{submission_path}_hyperopt_{hyper_hash}")

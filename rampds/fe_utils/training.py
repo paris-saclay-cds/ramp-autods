@@ -7,6 +7,7 @@ import rampds
 import rampds as rs
 import rampwf as rw
 
+from rampds.fe_utils.utils import FileUtils
 from rampds.scripts.foundation import foundation_models
 from rampds.actions import _mean_score
 
@@ -72,7 +73,8 @@ def run_ramp_experiment(
     else:
         raise ValueError(f"Invalid prediction type: {prediction_type}. Must be 'regression' or 'classification'.")
     
-    # train the model using fixed lgbm hps in ./lgbm.csv (add this as a parameter later)
+    # train the model using fixed lgbm hps located in rampds/fe_utils/fixed_lgbm_hps or rampds/fe_utils/blended_fixed_lgbm_hps
+    # this function doesn't return anything but stores the results (of single models and of the blend) on the disk, we later read them
     foundation_models(
         ramp_kit=complete_setup_kit_name,
         kit_root=base_ramp_kits_path,
@@ -81,23 +83,33 @@ def run_ramp_experiment(
         n_folds_hyperopt=n_cv_folds_arg,
         n_folds_final_blend=n_cv_folds_arg,
         base_predictors=["lgbm"],
-        deterministic_hash=True,
+        deterministic_hash=True, # this way we know the name of the trained models (lgbm_hyperopt_openfe_{i} for each model i in the blend)
         foundation_predictors_dir=foundation_predictors_dir
     )
 
-    # use the deterministic openfe hash to find the submission
-    trained_submission = f"lgbm_hyperopt_openfe"
-    problem = rw.utils.assert_read_problem(ramp_kit_dir_local_actual)
-    
-    # retrieve the score with rampds scoring functions
-    scores_dict = {}
-    scores_dict["mean_score"] = _mean_score(
-            trained_submission, folds_idx, problem.score_types[0], ramp_kit_dir_local_actual
-    )
-    
+    # if use blend look at bagged then blend score in training output
+    if blend:
+        score_path = os.path.join(ramp_kit_dir_local_actual, "submissions", "training_output", "bagged_then_blended_scores.csv")
+        score_df = FileUtils.load_csv(score_path)
+        # only look at the valid score because test one is not informative
+        score = score_df.iloc[-1]["valid"]
+        scores_dict = {}
+    # else if use single model look at its mean score on cv folds
+    else:
+        # if only one model is trained with deterministic hash we know it will be called lgbm_hyperopt_openfe_0
+        trained_submission = f"lgbm_hyperopt_openfe_0"
+        # retrieve the score with rampds scoring functions
+        problem = rw.utils.assert_read_problem(ramp_kit_dir_local_actual)
+        score = _mean_score(
+                trained_submission, folds_idx, problem.score_types[0], ramp_kit_dir_local_actual
+        )
+        scores_dict = {}
+        scores_dict["mean_score"] = score
+
+
     cleanup_ramp_kit(ramp_kit_dir_local_actual, clean_ramp_kit)
 
-    return scores_dict["mean_score"], scores_dict
+    return score, scores_dict
 
 from rampds.fe_utils.utils import cleanup_ramp_kit
 

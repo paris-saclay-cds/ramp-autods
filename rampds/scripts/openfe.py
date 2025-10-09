@@ -38,14 +38,14 @@ class OpenFEFeatureEngineering:
         blend=False,
         # openfe parameters
         verbose=False, 
-        max_new_feat_ratio=4.0, 
         n_jobs_gen=16, 
         min_cand_feat=10000, 
         n_data_blocks=2, 
         feat_boost=False,
         # feature selection 
         feat_selec_method="grid_search",
-        n_feat_to_test=[1, 2, 5, 10, 15, 20, 30, 50, 100, 200],
+        n_feat_to_test=[1, 5, 10, 15, 20, 35, 50, 100, 200, 350, 500], # expanded grid, removed 2 and distributed values more across range
+        max_new_feat_ratio=7, # from 4 to 7
         # results storing
         results_path="openfe_experiments/",
         ramp_dirs_path=None,
@@ -80,7 +80,8 @@ class OpenFEFeatureEngineering:
 
         # results storing
         self.exp_name = f"{self.data_name}_{self.exp_type}"
-        self.exp_name += "_blend_4_models" if self.blend else ""
+        # TODO fix this later when experiments finished
+        self.exp_name += "_blend_4_models_v2" if self.blend else "v2"
         self.results_dir = os.path.join(results_path, f"openfe_{self.exp_name}", self.data_name)
         self.ramp_dirs_path = ramp_dirs_path if ramp_dirs_path is not None else self.results_dir # could be cleaner (set base ramp paths in openfe results dir)
         self.overwrite_results_dir = overwrite_results_dir # wether to overwrite the openfe results dir if it already exists
@@ -90,6 +91,7 @@ class OpenFEFeatureEngineering:
 
         self.load_data() # could be renamed because no actual loading here (just extracting some infos)
         self.df_preprocessor = DataFramePreprocessor() # load a simple util class for preprocessing data for openfe (need to fill all NaNs and sanitize col names)
+        # TODO: add this if wanna do clean lgbm imputing: /mnt/data/cleger/code/ramp-autods/rampds/workflow_elements/tabular_data_preprocessors/cat_col_imputing.py
 
     # ==========================================================================
     # --- Public Methods ---
@@ -323,6 +325,45 @@ class OpenFEFeatureEngineering:
 
         return scores_df
     
+    # Claude recommendation for testing other simple feature selection experiments 
+    # def feature_selection_experiment(self):
+    #     scores_list = []
+    #     max_features_to_test = self.max_new_features_ratio * self.n_original_features
+
+    #     for n_selected_features in self.n_feat_to_test:
+    #         if n_selected_features > min(self.n_new_features, max_features_to_test):
+    #             continue
+                
+    #         try:
+    #             # Test TWO configurations per N:
+    #             # 1. First-N (current approach)
+    #             # 2. Stratified sampling (new approach)
+                
+    #             for strategy in ['first_n', 'stratified']:
+    #                 if strategy == 'first_n':
+    #                     selected_features = self.openfe_features[:n_selected_features]
+    #                     suffix = "first"
+    #                 else:
+    #                     step = max(1, self.n_new_features // n_selected_features)
+    #                     indices = range(0, self.n_new_features, step)[:n_selected_features]
+    #                     selected_features = [self.openfe_features[i] for i in indices]
+    #                     suffix = "stratified"
+                    
+    #                 # Evaluate
+    #                 updated_train_df, updated_test_df, updated_metadata = \
+    #                     self._update_dataframes_and_metadata(selected_features)
+                    
+    #                 complete_setup_kit_name = f"{self.exp_name}_OpenFE_{n_selected_features}_{suffix}"
+    #                 mean_score_value = self.score_dataset(...)
+                    
+    #                 scores_list.append((n_selected_features, mean_score_value, strategy))
+                    
+    #         except Exception as e:
+    #             print(f"Error: {e}")
+    #             continue
+        
+    #     return self._create_scores_df(scores_list=scores_list)
+    
     def save_results(self):
         """Save the results of the feature selection experiments:
         - experiment metadata
@@ -337,6 +378,7 @@ class OpenFEFeatureEngineering:
             "feature_selection_method": self.feature_selection_method,
             "n_new_features": self.n_new_features,
             "best_n_selected_features": int(self.best_n_selec_feat),
+            "best_score": self.best_score,
             "total_time_seconds": time.time() - self.start_time,
             "score_name": self.score_name,
             "objective_direction": self.objective_direction,

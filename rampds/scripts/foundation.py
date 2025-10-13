@@ -39,15 +39,22 @@ def submit_foundation_submissions(
             predictor_hyperparameters = hypers_per_workflow_element[predictor_type]
                  
             for arm_i, arm in predictor_hypers_df.iterrows():
-                # removed the if condition below, as it lead to an error because no contributivities in my expe  
+                # removed the if condition below, as it lead to an error when no contributivities yet
+                # which is the case when we just want to use hand selected arms
                 # if not pd.isna(arm["contributivity"]):
                 for h in predictor_hyperparameters:
-                    h.default_index = arm[f"{h.name}_i"]
+                    # Fixed error where the default index were sometimes rewritten with floats instead of ints, leading to errors later
+                    default_index = arm[f"{h.name}_i"]
+                    # if it is a float that represents a whole number, convert to int
+                    if isinstance(default_index, float) and default_index.is_integer():
+                        default_index = int(default_index)
+                    assert isinstance(default_index, int), f"default index {default_index} for hyperparameter {h.name} is not an integer or integer-like float"
+                    h.default_index = default_index
                 all_hyperparameters = []
                 for wen in workflow.element_names:
                     all_hyperparameters += hypers_per_workflow_element[wen]
                 hyper_indices = [h.default_index for h in all_hyperparameters]
-                # added a deterministic hash option for testing purposes, to see how to improve it
+                # added a deterministic hash option for testing purposes, to see how to improve it / make it more general (e.g openfe_ --> deterministic_)
                 if deterministic_hash:
                     hyper_hash = f"openfe_{arm_i}"
                 else:
@@ -66,9 +73,8 @@ def submit_foundation_submissions(
                     print(arm)
                     raise e
         else:
-            # added this raise error because otherwise it lead to understandable errors later
+            # added this raise error if no csv hps file, because otherwise lead to weird errors later
             # TODO: double check it is not something we want to authorize and handle differently (e.g just a warning ?) 
-            # But shouldn't be the case according to Youssef
             raise FileNotFoundError(f"File {best_arms_path} not found.")
     return foundation_submissions
 

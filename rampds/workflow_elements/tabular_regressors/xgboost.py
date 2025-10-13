@@ -4,8 +4,8 @@ import xgboost as xb
 from ramphy import Hyperparameter
 
 # RAMP START HYPERPARAMETERS
-colsample_bytree = Hyperparameter(dtype='float', default=0.5, values=[0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-colsample_bylevel = Hyperparameter(dtype='float', default=0.5, values=[0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+colsample_bytree = Hyperparameter(dtype='float', default=0.5, values=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+colsample_bylevel = Hyperparameter(dtype='float', default=0.5, values=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
 colsample_bynode = Hyperparameter(dtype='float', default=0.5, values=[0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
 gamma = Hyperparameter(dtype='float', default=0.0, values=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0])
 learning_rate = Hyperparameter(dtype='float', default=0.1, values=[0.0005, 0.001, 0.002, 0.005, 0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])

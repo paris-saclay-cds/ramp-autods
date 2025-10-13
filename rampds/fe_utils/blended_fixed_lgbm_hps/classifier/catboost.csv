@@ -1,0 +1,2 @@
+bootstrap_type,border_count,grow_policy,l2_leaf_reg,learning_rate,max_depth,min_data_in_leaf,n_estimators,random_strength,bootstrap_type_i,border_count_i,grow_policy_i,l2_leaf_reg_i,learning_rate_i,max_depth_i,min_data_in_leaf_i,n_estimators_i,random_strength_i
+Bernoulli,512,Depthwise,0.4,0.15,10,50,400,10.0,1,4,1,4,7,9,4,11,3

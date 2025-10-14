@@ -22,7 +22,7 @@ def run_ramp_experiment(
     clean_ramp_kit: bool = True,
     base_ramp_setup_kits_path: str = ".",
     base_ramp_kits_path: str = ".",
-    blend=False,
+    blend=False, # TODO: do a kinda blend config maybe 
 ):
     """
     Runs a RAMP experiment for a given setup kit, updates hyperparameters,
@@ -82,6 +82,8 @@ def run_ramp_experiment(
         n_folds_hyperopt=n_cv_folds_arg,
         n_folds_final_blend=n_cv_folds_arg,
         base_predictors=["lgbm"],
+        # base_predictors=["lgbm", "catboost", "xgboost"],
+        # base_predictors=["lgbm", "catboost"],
         deterministic_hash=True, # this way we know the name of the trained models (lgbm_hyperopt_openfe_{i} for each model i in the blend)
         foundation_predictors_dir=foundation_predictors_dir
     )

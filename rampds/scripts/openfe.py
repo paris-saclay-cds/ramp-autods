@@ -4,6 +4,7 @@ import shutil
 import pickle
 
 from copy import deepcopy
+from pathlib import Path
 
 import pandas as pd
 
@@ -34,7 +35,8 @@ class OpenFEFeatureEngineering:
         data_name,
         # scoring inputs
         n_cv_folds=30,
-        clean_ramp_kits=False, # let to False to keep the ramp kits for debugging
+        # clean_ramp_kits=False, # let to False to keep the ramp kits for debugging
+        clean_ramp_kits=True, # let to False to keep the ramp kits for debugging
         blend=False,
         # openfe parameters
         verbose=False, 
@@ -50,6 +52,7 @@ class OpenFEFeatureEngineering:
         results_path="openfe_experiments/",
         ramp_dirs_path=None,
         overwrite_results_dir=True, #default to True for experimenting and making testing easier
+        # overwrite_results_dir=False, #default to True for experimenting and making testing easier
     ):  
         # data inputs
         self.train_df = train_df
@@ -81,7 +84,10 @@ class OpenFEFeatureEngineering:
         # results storing
         self.exp_name = f"{self.data_name}_{self.exp_type}"
         # TODO fix this later when experiments finished
-        self.exp_name += "_blend_4_models_v2" if self.blend else "v2"
+        # TODO blend 3 models v2
+        # self.exp_name += "_blend_2_models_v2" if self.blend else "_v2"
+        self.exp_version = f"v4_{self.n_cv_folds}_folds"
+        self.exp_name += f"_blend_4_models_{self.exp_version}" if self.blend else f"_{self.exp_version}"
         self.results_dir = os.path.join(results_path, f"openfe_{self.exp_name}", self.data_name)
         self.ramp_dirs_path = ramp_dirs_path if ramp_dirs_path is not None else self.results_dir # could be cleaner (set base ramp paths in openfe results dir)
         self.overwrite_results_dir = overwrite_results_dir # wether to overwrite the openfe results dir if it already exists
@@ -116,6 +122,16 @@ class OpenFEFeatureEngineering:
         print("\nStarting OpenFE feature engineering experiment...")        
         self.start_time = time.time()
         self._print_experiment_setup()
+
+        # TODO: custom thing to clear cache at root of repo only for recording expes time
+        # TODO: could add a debug option that clears the cache / doesn't delete the ramp dirs
+        cache_dir = Path("cache")
+        print(f"Checking cache directory at {cache_dir.resolve()}")
+        if cache_dir.exists():
+            shutil.rmtree(cache_dir)
+            print(f"Cleared cache directory at {cache_dir.resolve()}")
+        else:
+            print("No cache directory found.")
 
         # preprocess for openfe
         self.preprocess_data()
@@ -427,7 +443,7 @@ class OpenFEFeatureEngineering:
         Raises:
             FileExistsError: If the results directory already exists and self.overwrite_results_dir is set to False.
         """
-        if os.path.exists(self.results_dir):
+        if os.path.exists(self.results_dir) and os.path.exists(self.scores_saving_path):
             print(f"Warning: results directory {self.results_dir} already exists. Contents may be overwritten.")
             if not self.overwrite_results_dir:
                 raise FileExistsError(f"Results directory {self.results_dir} already exists and overwrite_results_dir is set to False.")
@@ -631,8 +647,9 @@ class OpenFEFeatureEngineering:
         print(f"Results directory: {self.results_dir}")
         print(f"Scores results saving path: {self.scores_saving_path}")
         print(f"Number of CV folds: {self.n_cv_folds}")
+        print(f"Blend of models for scoring: {self.blend}")
+        print(f"Original number of features: {self.n_original_features}")
         print(f"Clean ramp kits after scoring: {self.clean_ramp_kits}")
-        print(f"Using blend of models for scoring: {self.blend}")
         
         print(f"\nOpenFE hyperparameters:")
         print(f"Minimum candidate features: {self.min_candidate_features}")

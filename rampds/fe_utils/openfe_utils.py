@@ -1,15 +1,17 @@
 import os
 import re
 
+from IPython.display import display, Markdown
+
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 from rampds.fe_utils.utils import FileUtils
 
 
-# TODO: add these in a class / UPPERCASE if use them as constants / put them in other shared utils dir
-expe_meta_data_file = "experiment_metadata.json"
-scores_file = "scores.csv"
-scores_plot_file = "openfe_scores_plot.png"
+EXPE_META_DATA_FILE = "experiment_metadata.json"
+SCORES_FILE = "scores.csv"
+SCORES_PLOT_FILE = "openfe_scores_plot.png"
 
 
 def score_is_better(score, comparison_score, objective_direction):
@@ -49,7 +51,6 @@ class OpenFEUtils:
             str: Formatted experiment type string.
         """
         return f"{min_cand_feat//1000}k_mcf_{data_blocks}_db_fb_{feature_boost}_{selection_method}"
-        # return f"{min_cand_feat//1000}k_min_cand_feat_{data_blocks}_data_blocks_feature_boost_{feature_boost}_{selection_method}"
     
     @staticmethod
     def plot_and_save_scores(
@@ -60,7 +61,9 @@ class OpenFEUtils:
         data_name, 
         objective_direction, 
         results_dir,
-        experiment_label=None
+        save_plot=True,
+        experiment_label=None,
+        best_n_selected_features=None,
         ):
         """
         Plots the scores and saves the visualization to a file.
@@ -92,16 +95,35 @@ class OpenFEUtils:
         if experiment_label:
             plt.figtext(0.5, 0.02, f'Experiment: {experiment_label}', ha='center', fontsize=10, style='italic')
 
+        # plot best point if available
+        if best_n_selected_features is not None and not (best_n_selected_features == 0):
+            best_score = scores[n_feat.index(best_n_selected_features)]
+            plt.scatter(best_n_selected_features, best_score, color='gold', s=300, marker='*', 
+                        label='Best Result', edgecolors='black', linewidths=1.5, zorder=10)
+            
+            # Add an annotation next to the star
+            plt.annotate(f'Best: {best_score:.2f}', 
+                xy=(best_n_selected_features, best_score), 
+                xytext=(best_n_selected_features+2, best_score),
+                fontsize=12,
+                weight='bold',
+                arrowprops=dict(arrowstyle='->')
+            )
 
-        # Save the improved plot
-        plot_path = os.path.join(results_dir, scores_plot_file)
-        plt.savefig(plot_path, dpi=300)
-        print(f"OpenFE Plot saved to {plot_path}")
+        if save_plot:
+            # Save the improved plot
+            plot_path = os.path.join(results_dir, SCORES_PLOT_FILE)
+            plt.savefig(plot_path, dpi=300)
+            print(f"OpenFE Plot saved to {plot_path}")
+            plt.close()
+        else:
+            plt.show()
+            
 
     @staticmethod
     def load_results(experiment_result_dir, data_name):
-        scores_file_path = os.path.join(experiment_result_dir, data_name, scores_file)
-        experiment_metadata_file = os.path.join(experiment_result_dir, data_name, expe_meta_data_file)
+        scores_file_path = os.path.join(experiment_result_dir, data_name, SCORES_FILE)
+        experiment_metadata_file = os.path.join(experiment_result_dir, data_name, EXPE_META_DATA_FILE)
         results_df = FileUtils.load_csv(scores_file_path)
         experiment_metadata = FileUtils.load_json(experiment_metadata_file)
 
@@ -240,3 +262,69 @@ class OpenFEUtils:
         Applies the simplified parsing to a list of column names.
         """
         return [OpenFEUtils.parse_OpenFE_feature_name(c) for c in columns]
+    
+
+def compare_plots(data_name, obj_direction, plots_path_list, titles_list, figsize=(16, 10), subplots_dims=None, fontsize=9):
+    """
+    Display two plots side by side for comparison.
+    
+    Args:
+        data_name: Name of the dataset
+        figsize: Figure size as (width, height)
+    """
+
+     # Load and display the images
+    try:
+        images = [mpimg.imread(plot_path) for plot_path in plots_path_list]
+    except FileNotFoundError as e:
+        print(f"Error loading images: {e}")
+        return
+    
+    display(Markdown(f"## OpenFE {data_name} - objective direction: {obj_direction}"))
+    
+    n_plots = len(images)
+    if not subplots_dims:
+        n_rows = 1
+        n_cols = n_plots
+    else:
+        n_rows, n_cols = subplots_dims
+    # Create figure with subplots
+    fig, ax_list = plt.subplots(n_rows, n_cols, figsize=figsize)
+
+    for ax, img, title in zip(ax_list.flatten(), images, titles_list):
+        ax.imshow(img)
+        ax.set_title(f"{title}")
+        ax.axis("off")
+    
+    plt.tight_layout()
+    plt.show()
+
+
+def compare_execution_times(data_name, metadata_list, titles_list, figsize=(16, 6)):
+    # times in minutes
+    times = [metadata["total_time_seconds"] / 60 for metadata in metadata_list]
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    x = range(len(times))
+    colors = ['#4C72B0', '#DD8452', '#55A868', '#C44E52']
+    bars = ax.bar(x, times, color=colors, edgecolor='black')
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(titles_list, rotation=25, ha='right')
+    ax.set_ylabel('Time (minutes)')
+    ax.set_title(f'Execution time comparison — {data_name}')
+    ax.grid(axis='y', linestyle='--', alpha=0.4)
+
+    # annotate bars with minutes
+    for bar, t in zip(bars, times):
+        height = bar.get_height()
+        ax.annotate(f'{t:.1f} min',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 4),  # offset
+                    textcoords='offset points',
+                    ha='center', va='bottom', fontsize=9)
+
+    plt.tight_layout()
+    plt.show()
+    return fig, ax

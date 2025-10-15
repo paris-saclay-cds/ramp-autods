@@ -420,7 +420,8 @@ class OpenFEFeatureEngineering:
             objective_direction=self.objective_direction,
             score_name=self.score_name,
             results_dir=self.results_dir,
-            experiment_label=experiment_label
+            experiment_label=experiment_label,
+            best_n_selected_features=int(self.best_n_selec_feat),
         )
 
     # ==========================================================================

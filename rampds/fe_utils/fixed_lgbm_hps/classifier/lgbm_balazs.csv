@@ -1,2 +1,2 @@
 boosting_type,colsample_bynode,colsample_bytree,drop_rate,learning_rate,max_bin,max_depth,min_child_weight,min_data_in_leaf,min_split_gain,n_estimators,reg_alpha,reg_lambda,subsample,boosting_type_i,colsample_bynode_i,colsample_bytree_i,drop_rate_i,learning_rate_i,max_bin_i,max_depth_i,min_child_weight_i,min_data_in_leaf_i,min_split_gain_i,n_estimators_i,reg_alpha_i,reg_lambda_i,subsample_i
-dart_10,0.1,1.0,0.4,0.15,1024,12,1,5,2.0,200,0.3,3.0,0.6,7,0,9,3,7,0,10,0,1,13,8,3,4,1
+gbdt_0,0.7,1.0,0.6,0.2,1024,7,1,50,0.4,50,0.1,5.0,0.9,0,6,9,5,8,2,6,0,4,4,4,1,6,4

@@ -49,6 +49,7 @@ class OpenFEFeatureEngineering:
         n_feat_to_test=[1, 5, 10, 15, 20, 35, 50, 100, 200, 350, 500], # expanded grid, removed 2 and distributed values more across range
         max_new_feat_ratio=7, # from 4 to 7
         # results storing
+        # TODO: add exp name parameter
         results_path="openfe_experiments/",
         ramp_dirs_path=None,
         overwrite_results_dir=True, #default to True for experimenting and making testing easier
@@ -87,7 +88,8 @@ class OpenFEFeatureEngineering:
         # TODO blend 3 models v2
         # self.exp_name += "_blend_2_models_v2" if self.blend else "_v2"
         self.exp_version = f"v4_{self.n_cv_folds}_folds"
-        self.exp_name += f"_blend_4_models_{self.exp_version}" if self.blend else f"_{self.exp_version}"
+        # self.exp_name += f"_blend_4_models_{self.exp_version}" if self.blend else f"_{self.exp_version}"
+        self.exp_name += f"_blend_lgbm_catboost_xgboost_{self.exp_version}" if self.blend else f"_{self.exp_version}"
         self.results_dir = os.path.join(results_path, f"openfe_{self.exp_name}", self.data_name)
         self.ramp_dirs_path = ramp_dirs_path if ramp_dirs_path is not None else self.results_dir # could be cleaner (set base ramp paths in openfe results dir)
         self.overwrite_results_dir = overwrite_results_dir # wether to overwrite the openfe results dir if it already exists
@@ -124,7 +126,7 @@ class OpenFEFeatureEngineering:
         self._print_experiment_setup()
 
         # TODO: custom thing to clear cache at root of repo only for recording expes time
-        # TODO: could add a debug option that clears the cache / doesn't delete the ramp dirs
+        # could add a debug option that clears the cache / doesn't delete the ramp dirs
         cache_dir = Path("cache")
         print(f"Checking cache directory at {cache_dir.resolve()}")
         if cache_dir.exists():
@@ -132,6 +134,14 @@ class OpenFEFeatureEngineering:
             print(f"Cleared cache directory at {cache_dir.resolve()}")
         else:
             print("No cache directory found.")
+
+        catboost_info_dir = Path("catboost_info")
+        print(f"Checking catboost_info directory at {catboost_info_dir.resolve()}")
+        if catboost_info_dir.exists():
+            shutil.rmtree(catboost_info_dir)
+            print(f"Cleared catboost_info directory at {catboost_info_dir.resolve()}")
+        else:
+            print("No catboost_info directory found.")
 
         # preprocess for openfe
         self.preprocess_data()

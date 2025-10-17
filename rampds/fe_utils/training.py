@@ -60,6 +60,7 @@ def run_ramp_experiment(
     # Use the __file__ attribute to get the directory as a string
     base_foundation_predictors_dir = os.path.dirname(os.path.abspath(rampds.fe_utils.__file__))
 
+    # TODO: change this name that is just refering to lgbm (can also include catboost and xgboost infos in fact)
     if blend:
         base_foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "blended_fixed_lgbm_hps")
     else:
@@ -81,8 +82,8 @@ def run_ramp_experiment(
         number=number_arg,
         n_folds_hyperopt=n_cv_folds_arg,
         n_folds_final_blend=n_cv_folds_arg,
-        base_predictors=["lgbm"],
-        # base_predictors=["lgbm", "catboost", "xgboost"],
+        # base_predictors=["lgbm"],
+        base_predictors=["lgbm", "catboost", "xgboost"],
         # base_predictors=["lgbm", "catboost"],
         deterministic_hash=True, # this way we know the name of the trained models (lgbm_hyperopt_openfe_{i} for each model i in the blend)
         foundation_predictors_dir=foundation_predictors_dir

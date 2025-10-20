@@ -10,8 +10,7 @@ import numpy as np
 import pandas as pd
 
 
-# data file names for paths
-# (would be cleaner to create a dataclass with these files paths)
+# data file names for paths (would be cleaner to create a dataclass with these files paths)
 TRAIN = "train.csv"
 TEST = "test.csv"
 METADATA = "metadata.json"
@@ -51,8 +50,6 @@ class FileUtils:
         with open(file_path, 'wb') as f:
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-#TODO: add this /mnt/data/cleger/code/ramp-autods/rampds/workflow_elements/tabular_data_preprocessors/cat_col_imputing.py
-# df preprocessor
 class DataFramePreprocessor:
     """
     A modular class for preprocessing pandas DataFrames, including sanitizing column names,
@@ -124,6 +121,8 @@ class DataFramePreprocessor:
                 if verbose:
                     print(f"Column {col} not found in mapping. Skipping renaming.")
         return df
+
+    #TODO: potentially add better imputing from ramp-autods/rampds/workflow_elements/tabular_data_preprocessors/cat_col_imputing.py
 
     @staticmethod
     def auto_fill_missing_col(df, col):

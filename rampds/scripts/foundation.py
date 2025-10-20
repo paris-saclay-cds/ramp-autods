@@ -37,7 +37,8 @@ def submit_foundation_submissions(
             else:
                 raise ValueError("unknown predictor type, can't find classifier or regressor")
             predictor_hyperparameters = hypers_per_workflow_element[predictor_type]
-                 
+
+            print(f"\nLaunching foundation submission for {base_predictor} with {len(predictor_hypers_df)} hyperparameter configurations ...\n")
             for arm_i, arm in predictor_hypers_df.iterrows():
                 # removed the if condition below, as it lead to an error when no contributivities yet
                 # which is the case when we just want to use hand selected arms

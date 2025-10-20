@@ -13,6 +13,7 @@ import rampds as rs
 from rampds.scripts.openfe import OpenFEFeatureEngineering
 from rampds.fe_utils.utils import DataFramePreprocessor, OPENFE_TEST_DIR
 
+
 def create_dummy_targets_and_encode_labels(
     train_data, test_data, target_cols, prediction_type):
     """Mock test labels if they do not exist and encode train and test labels.
@@ -52,7 +53,7 @@ def tabular_setup(
     download_dir: str | Path,
     ramp_kit_dir: str | Path = ".",
     ramp_data_dir: Optional[str | Path] = None,
-    feature_engineering: str = None,
+    feature_engineering: Optional[str] = None,
 ) -> None:
     """Sets up the kit from the metadata.json, train.csv and test.csv
 
@@ -78,15 +79,17 @@ def tabular_setup(
         data_name = DataFramePreprocessor.sanitize_name(metadata["title"]).lower()
         print(f"\nRunning OpenFE feature engineering on {data_name}...\n")
 
-        # Parse blend option - support both "openfe_blend" or "openfe:blend"
-        blend = False
-        if "blend" in feature_engineering:
-            blend = True
-
+        blend = True
         results_path = "openfe_experiments/"
-        if "test" in feature_engineering:
-            results_path = OPENFE_TEST_DIR
-            print("Running test experiment with OpenFE, all directories will be deleted after.")
+
+        # Old parsing option for blend support both "openfe_blend" or "openfe:blend" --> now default to True
+        # if "blend" in feature_engineering:
+        #     blend = True
+
+        # Old specific result path for tests if needed (to delete the whole directory after) --> now default to openfe_experiments/
+        # if "test" in feature_engineering:
+        #     results_path = OPENFE_TEST_DIR
+        #     print("Running test experiment with OpenFE, all directories will be deleted after.")
 
         # create OpenFE experiment object
         openfe_experiment = OpenFEFeatureEngineering(
@@ -94,11 +97,12 @@ def tabular_setup(
             test_data, 
             metadata,
             data_name=data_name,
-            # n_cv_folds=30, # add a small cv folds number for testing
-            n_cv_folds=5, # add a small cv folds number for testing
-            clean_ramp_kits=True,  # don't delete the ramp setup / kits for testing
-            blend=blend, # use a blend of models or not for scoring
-            results_path=results_path # results path
+            n_cv_folds=15,
+            clean_ramp_kits=True,
+            blend=blend,
+            results_path=results_path,
+            overwrite_results_dir=False,
+            exp_version="test",
         )
 
         # run the experiment with rs.actions.ramp_action to save time and results (see if we need to keep the results)
@@ -106,7 +110,8 @@ def tabular_setup(
 
         # retrieve the best selected data with new engineered features 
         train_data, test_data, metadata = openfe_experiment.load_best_updated_data()
-        print(f"\nOpenFE feature engineering step on {data_name} completed.\n")
+        print(f"\nOpenFE feature engineering step on {data_name} completed.")
+        print(f"Experiment results: {experiment_results}\n")
 
     # moved this to have relevant metadata 
     feature_types = metadata["data_description"]["feature_types"]

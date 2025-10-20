@@ -7,7 +7,7 @@ import rampds
 import rampds as rs
 import rampwf as rw
 
-from rampds.fe_utils.utils import FileUtils
+from rampds.fe_utils.utils import FileUtils, cleanup_ramp_kit
 from rampds.scripts.foundation import foundation_models
 from rampds.actions import _mean_score
 
@@ -22,7 +22,8 @@ def run_ramp_experiment(
     clean_ramp_kit: bool = True,
     base_ramp_setup_kits_path: str = ".",
     base_ramp_kits_path: str = ".",
-    blend=False, # TODO: do a kinda blend config maybe 
+    blend=False,
+    base_predictors=["lgbm"],
 ):
     """
     Runs a RAMP experiment for a given setup kit, updates hyperparameters,
@@ -56,6 +57,7 @@ def run_ramp_experiment(
 
     folds_idx = range(n_cv_folds_arg)
 
+    # TODO: fix this code
     # Maybe ix this hardcoded path later: lgbm.csv in rampds/fe_utils dir (e.g maybe put it in a data/ folder at base of directory)
     # Use the __file__ attribute to get the directory as a string
     base_foundation_predictors_dir = os.path.dirname(os.path.abspath(rampds.fe_utils.__file__))
@@ -82,9 +84,7 @@ def run_ramp_experiment(
         number=number_arg,
         n_folds_hyperopt=n_cv_folds_arg,
         n_folds_final_blend=n_cv_folds_arg,
-        # base_predictors=["lgbm"],
-        base_predictors=["lgbm", "catboost", "xgboost"],
-        # base_predictors=["lgbm", "catboost"],
+        base_predictors=base_predictors,
         deterministic_hash=True, # this way we know the name of the trained models (lgbm_hyperopt_openfe_{i} for each model i in the blend)
         foundation_predictors_dir=foundation_predictors_dir
     )
@@ -108,12 +108,10 @@ def run_ramp_experiment(
         scores_dict = {}
         scores_dict["mean_score"] = score
 
-
     cleanup_ramp_kit(ramp_kit_dir_local_actual, clean_ramp_kit)
 
     return score, scores_dict
 
-from rampds.fe_utils.utils import cleanup_ramp_kit
 
 def get_prediction_type(prediction_type):
     """Return either 'regression' or 'classification' based on the prediction type.
@@ -156,9 +154,11 @@ def initialize_experiment(
     Returns:
         str: Path to the created RAMP kit directory.
     """
-    # import ramp ds as as 
+    # fix seeds
     np.random.seed(seed_arg)
     random.seed(seed_arg)
+
+    # Set up the RAMP kit
     print(f"\nSetting up RAMP kit: {complete_setup_kit_name} in {base_ramp_kits_path}")
     rs.scripts.setup.setup(
         ramp_kit=complete_setup_kit_name,
@@ -167,6 +167,8 @@ def initialize_experiment(
         version=version_arg,
         number=number_arg,
     )
+
+    # return the path to the created ramp kit
     created_ramp_kit_name = f"{complete_setup_kit_name}_v{version_arg}_n{number_arg}"
     ramp_kit_dir_local_actual = os.path.join(base_ramp_kits_path, created_ramp_kit_name)
     print(f"RAMP kit created at: {ramp_kit_dir_local_actual}")

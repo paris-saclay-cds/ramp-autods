@@ -70,7 +70,6 @@ def tabular_setup(
     problem_f_name = ramp_kit_dir / "problem.py"
     train_data = pd.read_csv(download_dir / "train.csv")
     test_data = pd.read_csv(download_dir / "test.csv")
-
     metadata = json.load(open(download_dir / "metadata.json"))
 
     # Add optional OpenFE feature engineering step
@@ -78,9 +77,6 @@ def tabular_setup(
         # add a data name for OpenFE results names (e.g kaggle_abalone)
         data_name = DataFramePreprocessor.sanitize_name(metadata["title"]).lower()
         print(f"\nRunning OpenFE feature engineering on {data_name}...\n")
-
-        blend = True
-        results_path = "openfe_experiments/"
 
         # Old parsing option for blend support both "openfe_blend" or "openfe:blend" --> now default to True
         # if "blend" in feature_engineering:
@@ -99,9 +95,9 @@ def tabular_setup(
             data_name=data_name,
             n_cv_folds=15,
             clean_ramp_kits=True,
-            blend=blend,
-            results_path=results_path,
-            overwrite_results_dir=False,
+            blend=True,
+            results_path="openfe_experiments/",
+            overwrite_results_dir=True,
             exp_version="test",
         )
 

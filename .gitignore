@@ -4,3 +4,7 @@ __pycache__/
 *.ipynb_checkpoints*
 **/events.out.tfevents.*
 .vscode/
+rampds/tests/ramp_*
+cache/
+openfe_*/
+catboost_info/

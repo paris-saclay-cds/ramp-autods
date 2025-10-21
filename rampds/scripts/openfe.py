@@ -56,7 +56,7 @@ class OpenFEFeatureEngineering:
         self.train_df = train_df
         self.test_df = test_df
         self.metadata = metadata
-        self.data_name = data_name # could also directly extract this from metadata
+        self.data_name = data_name
         
         # scorer
         self.n_cv_folds = n_cv_folds
@@ -259,6 +259,7 @@ class OpenFEFeatureEngineering:
         # create a scores dataframe from the scores list
         scores_df = self._create_scores_df(scores_list=scores_list)
         return scores_df
+    
     
     # ==========================================================================
     # --- Initial Data Handling Methods ---
@@ -487,7 +488,7 @@ class OpenFEFeatureEngineering:
             tmp_path=transform_tmp_path
         ) 
 
-        # rename the new features with simplified names
+        # rename the new features with relevant openfe names
         new_train_x, new_test_x = self._rename_openfe_columns(
             selected_features,
             new_train_x,

@@ -67,6 +67,7 @@ def tabular_setup(
     download_dir = Path(download_dir)
     ramp_kit_dir, ramp_data_dir = rs.actions.convert_ramp_dirs(ramp_kit_dir, ramp_data_dir)
     ramp_kit_dir.mkdir(parents=True, exist_ok=True)
+
     problem_f_name = ramp_kit_dir / "problem.py"
     train_data = pd.read_csv(download_dir / "train.csv")
     test_data = pd.read_csv(download_dir / "test.csv")
@@ -77,15 +78,6 @@ def tabular_setup(
         # add a data name for OpenFE results names (e.g kaggle_abalone)
         data_name = DataFramePreprocessor.sanitize_name(metadata["title"]).lower()
         print(f"\nRunning OpenFE feature engineering on {data_name}...\n")
-
-        # Old parsing option for blend support both "openfe_blend" or "openfe:blend" --> now default to True
-        # if "blend" in feature_engineering:
-        #     blend = True
-
-        # Old specific result path for tests if needed (to delete the whole directory after) --> now default to openfe_experiments/
-        # if "test" in feature_engineering:
-        #     results_path = OPENFE_TEST_DIR
-        #     print("Running test experiment with OpenFE, all directories will be deleted after.")
 
         # create OpenFE experiment object
         openfe_experiment = OpenFEFeatureEngineering(
@@ -109,6 +101,7 @@ def tabular_setup(
         print(f"\nOpenFE feature engineering step on {data_name} completed.")
         print(f"Experiment results: {experiment_results}\n")
 
+    # continuation of previous AutoDS tabular setup code
     # moved this to have relevant metadata 
     feature_types = metadata["data_description"]["feature_types"]
     target_cols = metadata["data_description"]["target_cols"]

@@ -1,4 +1,0 @@
-bootstrap_type,border_count,grow_policy,l2_leaf_reg,learning_rate,max_depth,min_data_in_leaf,n_estimators,random_strength,bootstrap_type_i,border_count_i,grow_policy_i,l2_leaf_reg_i,learning_rate_i,max_depth_i,min_data_in_leaf_i,n_estimators_i,random_strength_i
-Bayesian_1,254,SymmetricTree,0.3,0.1,6,700,500,50.0,4,3,0,3,6,5,8,12,5
-Bernoulli,512,Depthwise,0.4,0.15,10,50,400,10.0,1,4,1,4,7,9,4,11,3
-Bayesian_0,254,SymmetricTree,0.1,0.4,11,200,700,50.0,3,3,0,1,11,10,6,13,5

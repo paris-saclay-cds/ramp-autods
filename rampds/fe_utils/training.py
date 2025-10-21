@@ -1,6 +1,8 @@
 import os
 import random
 
+from pathlib import Path
+
 import numpy as np
 
 import rampds
@@ -26,25 +28,27 @@ def run_ramp_experiment(
     base_predictors=["lgbm"],
 ):
     """
-    Runs a RAMP experiment for a given setup kit, updates hyperparameters,
-    trains the model, and returns scores. Cleans up the created RAMP kit.
+    Runs a RAMP experiment for a given setup kit.
 
     Args:
-        data_name_arg (str): Base name of the dataset (e.g., "abalone").
-        complete_setup_kit_name (str): Name of the complete setup kit to be used.
-        n_cv_folds_arg (int): Number of cross-validation folds.
-        metadata (dict): Metadata containing prediction type and other relevant information.
-        seed_arg (int): Random seed.
-        model_used_arg (str): Model identifier (e.g., "lgbm").
-        submission_arg (str, optional): RAMP submission name. Defaults to "starting_kit".
-        version_arg (str, optional): Version for RAMP kit. Defaults to "eval".
-        number_arg (int, optional): Number for RAMP kit. Defaults to 1.
-        clean_ramp_kit (bool, optional): Flag to clean the RAMP kit after training. Defaults to True.
-        base_ramp_setup_kits_path (str, optional): Base path for RAMP setup kits. Defaults to current directory.
-        base_ramp_kits_path (str, optional): Base path for RAMP kits. Defaults to current directory.
+        complete_setup_kit_name: Name of the complete setup kit to be used
+        n_cv_folds_arg: Number of cross-validation folds
+        prediction_type: Type of prediction ('regression', 'classification', etc.)
+        seed_arg: Random seed for reproducibility
+        version_arg: Version for RAMP kit
+        number_arg: Number for RAMP kit
+        clean_ramp_kit: Whether to clean the RAMP kit after training
+        base_ramp_setup_kits_path: Base path for RAMP setup kits
+        base_ramp_kits_path: Base path for RAMP kits
+        blend: Whether to use blended models
+        base_predictors: List of base predictors to use
 
     Returns:
-        dict: Contains complete_data_name, mean_score, all_scores 
+        dict: Contains 'score', 'scores_dict', and 'experiment_info'
+    
+    Raises:
+        ValueError: If prediction_type is invalid
+        FileNotFoundError: If required files are missing
     """
     ramp_kit_dir_local_actual = initialize_experiment(
         complete_setup_kit_name,
@@ -55,28 +59,10 @@ def run_ramp_experiment(
         base_ramp_kits_path
     )
 
-    folds_idx = range(n_cv_folds_arg)
-
-    # TODO: fix this code
-    # Maybe ix this hardcoded path later: lgbm.csv in rampds/fe_utils dir (e.g maybe put it in a data/ folder at base of directory)
-    # Use the __file__ attribute to get the directory as a string
-    base_foundation_predictors_dir = os.path.dirname(os.path.abspath(rampds.fe_utils.__file__))
-
-    # TODO: change this name that is just refering to lgbm (can also include catboost and xgboost infos in fact)
-    if blend:
-        base_foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "blended_fixed_lgbm_hps")
-    else:
-        base_foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "fixed_lgbm_hps")
-                                                
-    if "regression" in prediction_type:
-        foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "regressor")
-    elif "classification" in prediction_type:
-        foundation_predictors_dir = os.path.join(base_foundation_predictors_dir, "classifier")
-    else:
-        raise ValueError(f"Invalid prediction type: {prediction_type}. Must be 'regression' or 'classification'.")
+    # get models hyperparameters directory
+    foundation_predictors_dir = _get_foundation_predictors_dir(prediction_type, blend)
     
-    # train the model using fixed lgbm hps located in rampds/fe_utils/fixed_lgbm_hps or rampds/fe_utils/blended_fixed_lgbm_hps
-    # this function doesn't return anything but stores the results (of single models and of the blend) on the disk, we later read them
+    # training with foundation models function
     foundation_models(
         ramp_kit=complete_setup_kit_name,
         kit_root=base_ramp_kits_path,
@@ -89,25 +75,10 @@ def run_ramp_experiment(
         foundation_predictors_dir=foundation_predictors_dir
     )
 
-    # if use blend look at bagged then blend score in training output
-    if blend:
-        score_path = os.path.join(ramp_kit_dir_local_actual, "submissions", "training_output", "bagged_then_blended_scores.csv")
-        score_df = FileUtils.load_csv(score_path)
-        # only look at the valid score because test one is not informative
-        score = score_df.iloc[-1]["valid"]
-        scores_dict = {}
-    # else if use single model look at its mean score on cv folds
-    else:
-        # if only one model is trained with deterministic hash we know it will be called lgbm_hyperopt_openfe_0
-        trained_submission = f"lgbm_hyperopt_openfe_0"
-        # retrieve the score with rampds scoring functions
-        problem = rw.utils.assert_read_problem(ramp_kit_dir_local_actual)
-        score = _mean_score(
-                trained_submission, folds_idx, problem.score_types[0], ramp_kit_dir_local_actual
-        )
-        scores_dict = {}
-        scores_dict["mean_score"] = score
+    # retrieve results
+    score, scores_dict = _extract_scores(ramp_kit_dir_local_actual, blend, n_cv_folds_arg, base_predictors)
 
+    # clean up ramp kit directory if specified
     cleanup_ramp_kit(ramp_kit_dir_local_actual, clean_ramp_kit)
 
     return score, scores_dict
@@ -175,4 +146,51 @@ def initialize_experiment(
     return ramp_kit_dir_local_actual
 
 
+def _get_foundation_predictors_dir(prediction_type: str, blend: bool) -> str:
+    """Get the foundation predictors directory path."""
+    hyperparameters_data_dir = Path(__file__).parent / "data"
+    
+    model_type_dir = "blend_models_hps" if blend else "single_model_hps"
+    base_dir = os.path.join(hyperparameters_data_dir, model_type_dir)
+    
+    prediction_type_normalized = get_prediction_type(prediction_type)
+    task_dir = "regressor" if prediction_type_normalized == "regression" else "classifier"
+    
+    return os.path.join(base_dir, task_dir)
 
+
+def _extract_scores(ramp_kit_dir: str, blend: bool, n_cv_folds: int, base_predictors: list) -> tuple:
+    """Extract scores from trained models."""
+    if blend:
+        return _extract_blend_scores(ramp_kit_dir)
+    else:
+        assert len(base_predictors) == 1, "Single model extraction requires exactly one base predictor."
+        return _extract_single_model_scores(ramp_kit_dir, n_cv_folds, base_predictors)
+
+
+def _extract_blend_scores(ramp_kit_dir: str) -> tuple:
+    """Extract scores from blended models."""
+    # if use blend look at bagged then blend score in training output
+    score_path = os.path.join(ramp_kit_dir, "submissions", "training_output", "bagged_then_blended_scores.csv")
+    
+    if not os.path.exists(score_path):
+        raise FileNotFoundError(f"Blend scores file not found: {score_path}")
+    
+    score_df = FileUtils.load_csv(score_path)
+    # only look at the valid score because test one is not informative
+    score = score_df.iloc[-1]["valid"]
+    
+    return score, {"blend_score": score}
+
+
+def _extract_single_model_scores(ramp_kit_dir: str, n_cv_folds: int, base_predictors: list) -> tuple:
+    """Extract scores from single model."""
+    predictor = base_predictors[0]
+    trained_submission = f"{predictor}_hyperopt_openfe_0"
+    # if a lgbm is trained with deterministic hash, its trained submission dir is lgbm_hyperopt_openfe_0
+    
+    folds_idx = range(n_cv_folds)
+    problem = rw.utils.assert_read_problem(ramp_kit_dir)
+    score = _mean_score(trained_submission, folds_idx, problem.score_types[0], ramp_kit_dir)
+    
+    return score, {"mean_score": score}

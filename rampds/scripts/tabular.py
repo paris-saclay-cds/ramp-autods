@@ -1,5 +1,6 @@
-import json
 import re
+import json
+import yaml
 import shutil
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -11,7 +12,7 @@ import ramphy as rh
 import rampds as rs
 
 from rampds.scripts.openfe import OpenFEFeatureEngineering
-from rampds.fe_utils.utils import DataFramePreprocessor, OPENFE_TEST_DIR
+from rampds.feat_eng.utils import DataFramePreprocessor
 
 
 def create_dummy_targets_and_encode_labels(
@@ -73,33 +74,39 @@ def tabular_setup(
     test_data = pd.read_csv(download_dir / "test.csv")
     metadata = json.load(open(download_dir / "metadata.json"))
 
-    # Add optional OpenFE feature engineering step
-    if feature_engineering and "openfe" in feature_engineering:
-        # add a data name for OpenFE results names (e.g kaggle_abalone)
-        data_name = DataFramePreprocessor.sanitize_name(metadata["title"]).lower()
-        print(f"\nRunning OpenFE feature engineering on {data_name}...\n")
+    # feature engineering config path
+    feat_eng_configs_path = (Path(__file__).resolve().parent.parent / "feat_eng" / "configs").resolve()
 
-        # create OpenFE experiment object
-        openfe_experiment = OpenFEFeatureEngineering(
-            train_data, 
-            test_data, 
-            metadata,
-            data_name=data_name,
-            n_cv_folds=15,
-            clean_ramp_kits=True,
-            blend=True,
-            results_path="openfe_experiments/",
-            overwrite_results_dir=True,
-            exp_version="test",
-        )
+    if feature_engineering is not None:
+        # Add optional OpenFE feature engineering step
+        if feature_engineering == "openfe":
+            # add a data name for OpenFE results names (e.g kaggle_abalone)
+            data_name = DataFramePreprocessor.sanitize_name(metadata["title"]).lower()
+            print(f"\nRunning OpenFE feature engineering on {data_name}...\n")
 
-        # run the experiment with rs.actions.ramp_action to save time and results (see if we need to keep the results)
-        experiment_results = openfe_experiment.run_feature_engineering_and_selection()
+            # load config file
+            openfe_config_path = feat_eng_configs_path / "openfe.yaml"
+            with open(openfe_config_path, 'r') as f:
+                openfe_config = yaml.safe_load(f)
 
-        # retrieve the best selected data with new engineered features 
-        train_data, test_data, metadata = openfe_experiment.load_best_updated_data()
-        print(f"\nOpenFE feature engineering step on {data_name} completed.")
-        print(f"Experiment results: {experiment_results}\n")
+            openfe_experiment = OpenFEFeatureEngineering(
+                train_data, 
+                test_data, 
+                metadata,
+                data_name=data_name,
+                **openfe_config
+            )
+            
+            # run the experiment with rs.actions.ramp_action to save time and results (see if we need to keep the results)
+            experiment_results = openfe_experiment.run_feature_engineering_and_selection()
+
+            # retrieve the best selected data with new engineered features 
+            train_data, test_data, metadata = openfe_experiment.load_best_updated_data()
+            print(f"\nOpenFE feature engineering step on {data_name} completed.")
+            print(f"Experiment results: {experiment_results}\n")
+
+        else:
+            raise NotImplementedError(f"Feature engineering method {feature_engineering} not implemented.")
 
     # continuation of previous AutoDS tabular setup code
     # moved this to have relevant metadata 

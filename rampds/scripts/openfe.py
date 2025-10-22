@@ -10,9 +10,9 @@ import pandas as pd
 
 from openfe import OpenFE, tree_to_formula, transform
 
-from rampds.fe_utils.openfe_utils import OpenFEUtils
-from rampds.fe_utils.training import run_ramp_experiment
-from rampds.fe_utils.utils import (
+from rampds.feat_eng.openfe_utils import OpenFEUtils
+from rampds.feat_eng.training import run_ramp_experiment
+from rampds.feat_eng.utils import (
     DataFramePreprocessor,
     save_ramp_setup_kit_data,
     get_new_columns_name_dtype_and_check,
@@ -35,7 +35,7 @@ class OpenFEFeatureEngineering:
         # scoring inputs
         n_cv_folds=15,
         clean_ramp_kits=True,
-        blend=False,
+        blend=True,
         base_predictors=["lgbm"],
         # openfe parameters
         verbose=False, 
@@ -51,6 +51,7 @@ class OpenFEFeatureEngineering:
         results_path="openfe_experiments/",
         exp_version="test",
         overwrite_results_dir=True,
+        **kwargs
     ):  
         # data inputs
         self.train_df = train_df
@@ -94,6 +95,10 @@ class OpenFEFeatureEngineering:
         # load data and initialize preprocessor
         self.load_data()
         self.df_preprocessor = DataFramePreprocessor()
+
+        # fallback for unexpected kwargs
+        if kwargs:
+            raise ValueError(f"Unexpected config keys: {list(kwargs.keys())}")
 
 
     # ==========================================================================

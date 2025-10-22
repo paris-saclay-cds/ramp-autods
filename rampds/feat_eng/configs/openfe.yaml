@@ -1,0 +1,25 @@
+# OpenFE Feature Engineering Configuration
+# All parameters for OpenFEFeatureEngineering class
+
+# Results storing (modify the exp_version to avoid overwriting previous experiments)
+exp_version: "test"
+results_path: "openfe_experiments/"
+overwrite_results_dir: false
+
+# Scoring inputs
+n_cv_folds: 15
+clean_ramp_kits: true
+blend: true
+base_predictors: ["lgbm"]
+
+# OpenFE parameters
+verbose: false
+n_jobs_gen: 16
+min_cand_feat: 10000
+n_data_blocks: 2
+feat_boost: false
+
+# Feature selection
+feat_selec_method: "grid_search"
+n_feat_to_test: [1, 5, 10, 15, 20, 35, 50, 100, 200, 350, 500]
+max_new_feat_ratio: 7

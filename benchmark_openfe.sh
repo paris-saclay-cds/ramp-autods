@@ -1,9 +1,13 @@
 #!/bin/bash
 # filepath: run_openfe_setup.sh
 
-# Configuration
+# final ramp setup kit configuration
 VERSION="OpenFE_test"
 NUMBER=0
+
+# to modify the specific Openfe experiment arguments:
+# update the config in rampds/feat_eng/config/openfe.yaml
+# make sure to change the exp_version parameter to prevent overwriting previous results
 
 # Example list of RAMP kits to process
 datasets=(

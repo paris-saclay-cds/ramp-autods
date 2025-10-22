@@ -1,5 +1,5 @@
 from . import actions
-from . import fe_utils
+from . import feat_eng
 from .scripts import foundation
 from .scripts import orchestration
 from .scripts import blend_at_round
@@ -26,7 +26,7 @@ __all__ = [
     "tabular_cat_col_encoders_submit",
     "setup",
     "utils",
-    "fe_utils",
+    "feat_eng",
     "score_name_type_map",
     "actions",
 ]

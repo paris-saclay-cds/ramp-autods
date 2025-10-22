@@ -9,7 +9,7 @@ import rampds
 import rampds as rs
 import rampwf as rw
 
-from rampds.fe_utils.utils import FileUtils, cleanup_ramp_kit
+from rampds.feat_eng.utils import FileUtils, cleanup_ramp_kit
 from rampds.scripts.foundation import foundation_models
 from rampds.actions import _mean_score
 

@@ -6,7 +6,7 @@ from IPython.display import display, Markdown
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
-from rampds.fe_utils.utils import FileUtils
+from rampds.feat_eng.utils import FileUtils
 
 
 EXPE_META_DATA_FILE = "experiment_metadata.json"

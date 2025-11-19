@@ -119,7 +119,7 @@ class OpenFEFeatureEngineering:
         self._print_experiment_setup()
 
         # Clear cache directories to ensure training starts fresh
-        self._clear_cache_directories()
+#        self._clear_cache_directories()
 
         # preprocess for openfe
         self.preprocess_data()

@@ -94,7 +94,7 @@ def tabular_setup(
                 test_data, 
                 metadata,
                 data_name=data_name,
-                **openfe_config
+#                **openfe_config
             )
             
             # run the experiment with rs.actions.ramp_action to save time and results (see if we need to keep the results)

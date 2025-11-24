@@ -42,8 +42,6 @@ INSTALL_REQUIRES = [
     "joblib",
     "cloudpickle",
     "click",
-    "ray[tune]",
-    "xarray",
     "category_encoders",
     "xgboost",
     "lightgbm",

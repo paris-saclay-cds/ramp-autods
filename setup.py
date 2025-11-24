@@ -50,7 +50,7 @@ INSTALL_REQUIRES = [
     "ramp-workflow @ git+https://github.com/paris-saclay-cds/ramp-workflow@autods",
     "ramp-hyperopt @ git+https://github.com/paris-saclay-cds/ramp-hyperopt@autods",
     "openfe @ git+https://github.com/corentinlger/OpenFE@fixed_openfe",
-    "pymoo==0.5" # Error if use >0.5 
+    "pymoo==0.6"
 ]
 EXTRAS_REQUIRE = {
     'tests': ['pytest', 'pytest-cov'],

@@ -3,16 +3,73 @@ RAMP AutoDS
 
 Automated Tabular Data Scientist based on the RAMP ecosystem.
 
-# Installation
+## Headline results
 
-1. Create a fresh python environment
-```
+Across 33 Kaggle tabular challenges (regression and classification, full Kaggle private leaderboard protocol):
+
+| System | mean p-rank | wins (out of 33) |
+| --- | --- | --- |
+| AutoDS | **81.9** | **18** |
+| AutoGluon 1.1.1 (best_quality, matched runtime) | 78.7 | 13 |
+
+p-rank is the percentage rank on the Kaggle private leaderboard, 0 to 100, higher is better. AutoGluon was given the same total wall-clock as AutoDS.
+
+On the small-data subset where TabPFN (Hollmann et al., Nature 2025) can be run, well-hyperopted boosting plus blending wins on 3 of 5 challenges:
+
+| Challenge | TabPFN p-rank | AutoDS blend p-rank |
+| --- | --- | --- |
+| attrition | 39.3 | **56.6** |
+| cirrhosis | 45.6 | **92.0** |
+| concrete strength | **99.3** | 94.7 |
+| horses | 54.4 | **76.5** |
+| wine | **75.9** | 68.6 |
+
+Even single-model AutoDS CatBoost (no blending, no race) is roughly tied with TabPFN on 4 of 5 challenges. See the paper draft (Tables 6 and 7) for full numbers and the apples-to-apples conditions.
+
+## What AutoDS is
+
+A fully automated tabular ML stack with five components, all carefully integrated:
+
+- **Base predictors:** XGBoost, CatBoost, LightGBM, scikit-learn MLP, each with a fixed hyperparameter grid.
+- **Hyperopt agent:** HEBO, run as a submission agent so every arm explored becomes a candidate for blending.
+- **Partial hyperopt:** optimize predictor or data preprocessor while freezing the other; novel and effective for high-dimensional spaces that include preprocessor hyperparameters.
+- **CV-bagging and forward-greedy blending:** 3 by 10-fold CV, blend over folds, blend over submissions per fold.
+- **Hyperopt race orchestration agent:** evolutionary-flavored scheduler that allocates compute proportionally to each base predictor's contributivity to the current blend, then refines either the predictor or the preprocessor of a winning submission.
+
+Ablation across these elements (approximate, see paper Table 3):
+
+| element | average p-rank gain ove best single boosting model |
+| --- | --- |
+| blending | 8 |
+| hyperopt and race | 4 |
+| optimizing over seeds | 3 |
+| early stopping | 2 |
+| feature dropout | 2 |
+| SKMLP base predictor | 1 |
+| missing data imputation | 1 |
+
+Blending dominates. Most of the gap to single-model systems including TabPFN is explained by ensembling well-hyperopted boosters, not by any single architectural choice.
+
+## Why this exists
+
+LLM-based data science agents are improving fast but still rely on an underlying AutoML stack to actually fit and select models. AutoDS is intended as a strong such backbone: a transparent, reproducible, evaluation-honest baseline that outperforms the prior state of the art and is easy to extend. It can be used as:
+
+- a research baseline for new tabular methods, evaluated through the Kaggle private-leaderboard protocol described in the paper;
+- the inner loop of an LLM-driven data-science agent, where the LLM does feature engineering and problem framing and AutoDS handles model selection, hyperopt, and blending;
+- a working reference implementation of partial hyperopt and the hyperopt race for the AutoML community.
+
+## Installation
+
+```bash
 conda create -n auto_ds python=3.11
+conda activate auto_ds
+pip install .
 ```
 
-2. In the root directory, run
-```
-pip install .
+Optional, for end-to-end Kaggle integration:
+
+```bash
+pip install ramp-kaggle
 ```
 
 3. (Optional) To interact with Kaggle you need to install `ramp-kaggle`.
